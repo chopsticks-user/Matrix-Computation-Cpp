@@ -1,6 +1,7 @@
-#ifndef N3K0_HPP
-#define N3K0_HPP
+#ifndef LINEAR_ALGEBRA_HPP
+#define LINEAR_ALGEBRA_HPP
 
+#include "Configuration.hpp"
 #include "Container/Container.hpp"
 
 #include <iostream>
@@ -10,9 +11,9 @@
 #include <typeinfo>
 #include <algorithm>
 
-namespace N3K0
+namespace linear_algebra
 {
     
 }
 
-#endif /* N3K0_HPP */
+#endif /* LINEAR_ALGEBRA_HPP */

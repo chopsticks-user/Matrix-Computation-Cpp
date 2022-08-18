@@ -1,0 +1,8 @@
+#ifndef CONFIGURATION_HPP
+#define CONFIGURATION_HPP
+
+#define DEBUG_LIN_ALG 1
+
+#define PERFORMANCE 1
+
+#endif /* CONFIGURATION_HPP */

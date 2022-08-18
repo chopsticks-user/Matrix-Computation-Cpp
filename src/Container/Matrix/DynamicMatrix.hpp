@@ -1,5 +1,5 @@
-#ifndef N3K0_CONTAINER_MATRIX_DYNAMICMATRIX_HPP
-#define N3K0_CONTAINER_MATRIX_DYNAMICMATRIX_HPP
+#ifndef LINEAR_ALGEBRA_CONTAINER_MATRIX_DYNAMICMATRIX_HPP
+#define LINEAR_ALGEBRA_CONTAINER_MATRIX_DYNAMICMATRIX_HPP
 
 #include "BaseMatrix.hpp"
 
@@ -14,11 +14,11 @@ private:
 public:
     DynamicMatrix() = default;
 
-    DynamicMatrix(std::size_t sq_size)
-    { this->default_fill_initialize(sq_size, sq_size); }
+    DynamicMatrix(std::size_t sq_sz)
+    { this->default_fill_initialize(sq_sz, sq_sz); }
 
     DynamicMatrix(std::size_t r_size, std::size_t c_size, ElementType value = 0)
-    { this->default_fill_initialize(r_size, c_size, value); }
+    { this->default_fill_initialize(r_sz, c_sz, value); }
 };
 
-#endif /* N3KO_CONTAINER_MATRIX_DYNAMICMATRIX_HPP */
+#endif /* LINEAR_ALGEBRA_CONTAINER_MATRIX_DYNAMICMATRIX_HPP */
