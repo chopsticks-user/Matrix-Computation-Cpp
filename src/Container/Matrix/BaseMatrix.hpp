@@ -1,5 +1,8 @@
-#ifndef LINEAR_ALGEBRA_CONTAINER_MATRIX_BASEMATRIX_HPP
-#define LINEAR_ALGEBRA_CONTAINER_MATRIX_BASEMATRIX_HPP
+#ifndef BASEMATRIX_HPP
+#define BASEMATRIX_HPP
+
+// #include "../../Utils/Utils.hpp"
+#include "MatrixHelper.hpp"
 
 #include <vector>
 #include <array>
@@ -20,12 +23,6 @@ template <typename ElementType, size_t row_size = 0, size_t col_size = 0>
 class BaseMatrix
 {
 protected:
-    static constexpr bool is_declared_static_matrix_v(size_t r_sz, size_t c_sz)
-    { return r_sz != 0 || c_sz != 0; };
-
-    static constexpr size_t sq_mat_size(size_t r_sz, size_t c_sz)
-    { return c_sz == 0 ? r_sz * r_sz : r_sz * c_sz; }
-
     // declare this function as a template function so that
     // std::enable_if::type = T
     // T = void is for the compiler to deduce T
@@ -53,8 +50,11 @@ public:
                                std::vector<ElementType>>
         DataType;
     DataType data_;
+
+    // virtual ~BaseMatrix() = default;
+    // virtual std::unique_ptr<BaseMatrix> clone() const = 0;
 };
 
 // use enable_if to enable specialized functionalities for square matrices
 
-#endif /* LINEAR_ALGEBRA_CONTAINER_MATRIX_BASEMATRIX_HPP */
+#endif /* BASEMATRIX_HPP */

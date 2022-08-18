@@ -1,32 +1,47 @@
-#ifndef LINEAR_ALGEBRA_CONTAINER_MATRIX_HPP
-#define LINEAR_ALGEBRA_MATRIX_MATRIX_HPP
+#ifndef LIN_ALG_CONTAINER_MATRIX_HPP
+#define LIN_ALG_CONTAINER_MATRIX_HPP
 
+#include "../../Utils/Utils.hpp"
 #include "DynamicMatrix.hpp"
 #include "StaticMatrix.hpp"
 #include "BaseMatrix.hpp"
+#include "MatrixHelper.hpp"
+#include <type_traits>
+
 #include <memory>
 
 template <typename ElementType, size_t row_size = 0, size_t col_size = 0>
 class Matrix
 {
-private:
-    static constexpr bool is_declared_static_matrix_v(size_t r_sz, size_t c_sz)
-    {
-        return r_sz != 0 || c_sz != 0;
-    };
-
-    static constexpr size_t sq_mat_size(size_t r_sz, size_t c_sz)
-    {
-        return c_sz == 0 ? r_sz * r_sz : r_sz * c_sz;
-    }
-
-public:
     typedef std::conditional_t<is_declared_static_matrix_v(row_size, col_size),
                                StaticMatrix<ElementType, row_size, col_size>,
                                DynamicMatrix<ElementType>>
         MatrixType;
-    std::unique_ptr<MatrixType> data_;
-    // Matrix() = default;
+
+private:
+    std::shared_ptr<MatrixType> data_;
+
+public:
+    constexpr bool is_static_matrix_v()
+    {
+        return std::is_same_v<MatrixType,
+                              StaticMatrix<ElementType, row_size, col_size>>;
+    }
+
+    Matrix() : data_(std::make_shared<MatrixType>()){};
+
+    template <typename RMatrixType>
+    Matrix(const RMatrixType &r_matrix)
+        : data_(std::make_shared<MatrixType>(r_matrix.data_))
+    {
+        std::cout << "copy \n"
+                  << std::addressof(r_matrix.data_) << '\n';
+    }
+
+    template <typename RMatrixType>
+    Matrix(RMatrixType &&r_matrix) : data_(std::move(r_matrix.data_))
+    {
+    }
 };
 
-#endif /* LINEAR_ALGEBRA_CONTAINER_MATRIX_H */
+#endif /* LIN_ALG_CONTAINER_MATRIX_HPP */

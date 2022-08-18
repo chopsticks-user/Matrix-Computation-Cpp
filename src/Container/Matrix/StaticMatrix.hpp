@@ -1,5 +1,5 @@
-#ifndef LINEAR_ALGEBRA_CONTAINER_MATRIX_STATICMATRIX_HPP
-#define LINEAR_ALGEBRA_CONTAINER_MATRIX_STATICMATRIX_HPP
+#ifndef LIN_ALG_CONTAINER_STATIC_MATRIX_HPP
+#define LIN_ALG_CONTAINER_STATIC_MATRIX_HPP
 
 #include "BaseMatrix.hpp"
 
@@ -9,11 +9,27 @@ class StaticMatrix : public BaseMatrix<ElementType, row_size, col_size>
     typedef BaseMatrix<ElementType, row_size, col_size> Base;
 
 public:
+    // virtual std::unique_ptr<Base> clone() const override
+    // { return std::make_unique<StaticMatrix>(*this); }
+
+    ~StaticMatrix() = default;
+
+    // Matrix<int, 5, 6> --> M<5x6>, ∀ M[i, j] = 0
     StaticMatrix()
     { this->default_fill_initialize(); }
 
+    // Matrix<int, 5, 6>(7) --> M<5x6>, ∀ M[i, j] = 7
     StaticMatrix(ElementType value)
     { this->default_fill_initialize(value); }
+
+    // copy constructor + copy assignment, implicitly
+    template <class RMatrixType>
+    StaticMatrix(const RMatrixType &r_matrix)
+    { this->copy_initialize(r_matrix); } // exceptions
+
+    template <class RMatrixType>
+    StaticMatrix(RMatrixType &&r_matrix)
+    { this->move_initialize(r_matrix); } // exceptions
 };
 
-#endif /* LINEAR_ALGEBRA_CONTAINER_MATRIX_STATICMATRIX_HPP */
+#endif /* LIN_ALG_CONTAINER_STATIC_MATRIX_HPP */

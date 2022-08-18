@@ -1,9 +1,12 @@
+#ifndef LIN_ALG_UTILS_HPP
+#define LIN_ALG_UTILS_HPP
+
 #include <iostream>
 #include <chrono>
 #include <string>
 #include <random>
 
-namespace ultis
+namespace utils
 {
     long long rand(long long min, long long max)
     {
@@ -46,4 +49,7 @@ namespace ultis
             std::cout << "\nTime elapsed: " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << " ms\n";
         }
     };
+
 }
+
+#endif /* LIN_ALG_UTILS_HPP */
