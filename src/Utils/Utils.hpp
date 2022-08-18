@@ -1,11 +1,9 @@
-#include "src/LinearAlgebra.hpp"
-
 #include <iostream>
 #include <chrono>
 #include <string>
 #include <random>
 
-namespace utils
+namespace ultis
 {
     long long rand(long long min, long long max)
     {
@@ -48,31 +46,4 @@ namespace utils
             std::cout << "\nTime elapsed: " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << " ms\n";
         }
     };
-}
-
-const int n = 10000;
-
-void test1()
-{
-    utils::Timer t1;
-    for (int i = 0; i < n; i++)
-    {
-        std::vector<float> v(360000);
-    }
-}
-
-void test2()
-{
-    utils::Timer t2;
-    for (int i = 0; i < n; i++)
-    {
-        Matrix<float, 600, 600> m;
-        m.data_->data_[30000] = 0;
-    }
-}
-
-int main()
-{
-    test2();
-    return 0;
 }

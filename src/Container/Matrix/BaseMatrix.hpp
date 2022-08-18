@@ -17,19 +17,14 @@
 // };
 
 template <typename ElementType, size_t row_size = 0, size_t col_size = 0>
-struct BaseMatrix
+class BaseMatrix
 {
+protected:
     static constexpr bool is_declared_static_matrix_v(size_t r_sz, size_t c_sz)
     { return r_sz != 0 || c_sz != 0; };
 
     static constexpr size_t sq_mat_size(size_t r_sz, size_t c_sz)
     { return c_sz == 0 ? r_sz * r_sz : r_sz * c_sz; }
-
-    typedef std::conditional_t<is_declared_static_matrix_v(row_size, col_size),
-                               std::array<ElementType, sq_mat_size(row_size, col_size)>,
-                               std::vector<ElementType>>
-        DataType;
-    DataType data_;
 
     // declare this function as a template function so that
     // std::enable_if::type = T
@@ -46,11 +41,18 @@ struct BaseMatrix
 
     template <class RMatrixType>
     void copy_initialize(const RMatrixType& r_matrix)
-    { std::copy(r_matrix.data_.begin(), r_matrix.data_.end(), data_.begin()); }
+    { std::copy(r_matrix->data_.begin(), r_matrix->data_.end(), data_.begin()); }
 
     template <class RMatrixType>
     void move_initialize(RMatrixType&& r_matrix)
-    { std::move(r_matrix.data_.begin(), r_matrix.data_.end(), data_.begin()); }
+    { std::move(r_matrix->data_.begin(), r_matrix->data_.end(), data_.begin()); }
+    
+public:
+    typedef std::conditional_t<is_declared_static_matrix_v(row_size, col_size),
+                               std::array<ElementType, sq_mat_size(row_size, col_size)>,
+                               std::vector<ElementType>>
+        DataType;
+    DataType data_;
 };
 
 // use enable_if to enable specialized functionalities for square matrices
