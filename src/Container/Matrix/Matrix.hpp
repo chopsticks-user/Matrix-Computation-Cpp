@@ -1,14 +1,14 @@
 #ifndef LIN_ALG_CONTAINER_MATRIX_HPP
 #define LIN_ALG_CONTAINER_MATRIX_HPP
 
-#include "../../Utils/Utils.hpp"
+// #include "../../Utils/Utils.hpp"
 #include "DynamicMatrix.hpp"
 #include "StaticMatrix.hpp"
 #include "BaseMatrix.hpp"
 #include "MatrixHelper.hpp"
-#include <type_traits>
 
-#include <memory>
+// #include <type_traits>
+// #include <memory>
 
 // template <typename ElementType, size_t declared_row_size = 0, size_t declared_col_size = 0>
 // struct is_static_matrix_:std::is_same<>;
@@ -22,7 +22,7 @@ template <typename ElementType,
 class Matrix
 {
     typedef std::conditional_t<
-        is_declared_static_matrix_v(declared_row_size, declared_col_size),
+        utils::is_declared_static_matrix_v(declared_row_size, declared_col_size),
         StaticMatrix<ElementType, declared_row_size, declared_col_size>,
         DynamicMatrix<ElementType>>
         MatrixType;
@@ -46,7 +46,7 @@ public:
 
     Matrix() : data_(std::make_shared<MatrixType>()){};
 
-    // template<std::enable_if_t<is_declared_static_matrix_v(declared_row_size, declared_col_size), bool> = true>
+    // template<std::enable_if_t<utils::is_declared_static_matrix_v(declared_row_size, declared_col_size), bool> = true>
     // Matrix(ElementType fill_value = 0)
     // { std::cout<<"e"; }
 

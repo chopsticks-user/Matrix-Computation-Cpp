@@ -2,7 +2,7 @@
 #define BASEMATRIX_HPP
 
 // #include "../../Utils/Utils.hpp"
-#include "MatrixHelper.hpp"
+#include "../../Utils/Utils.hpp"
 
 #include <vector>
 #include <array>
@@ -26,8 +26,8 @@ class BaseMatrix
 {
 protected:
     typedef std::conditional_t<
-        is_declared_static_matrix_v(declared_row_size, declared_col_size),
-        std::array<ElementType, sq_mat_size(declared_row_size, declared_col_size)>,
+        utils::is_declared_static_matrix_v(declared_row_size, declared_col_size),
+        std::array<ElementType, utils::sq_mat_size(declared_row_size, declared_col_size)>,
         std::vector<ElementType>>
         DataType;
     DataType data_;
@@ -41,7 +41,7 @@ protected:
     // T = void is for the compiler to deduce T
     template <typename T = void>
     typename std::enable_if_t<
-        is_declared_static_matrix_v(declared_row_size, declared_col_size), T>
+        utils::is_declared_static_matrix_v(declared_row_size, declared_col_size), T>
     default_fill_initialize(ElementType fill_value = 0)
     {
         data_.fill(fill_value);
@@ -51,7 +51,7 @@ protected:
 
     template <typename T = void>
     typename std::enable_if_t<
-        !is_declared_static_matrix_v(declared_row_size, declared_col_size), T>
+        !utils::is_declared_static_matrix_v(declared_row_size, declared_col_size), T>
     default_fill_initialize(std::size_t row_size = 0,
                             std::size_t col_size = 0,
                             ElementType fill_value = 0)
@@ -80,15 +80,6 @@ protected:
     }
 
     //--------------------------Initialization Section End-------------------------------------
-    //--------------------------Type Traits Section Start--------------------------------------
-
-    template <typename TargetType>
-    bool is_1d_c_array_v(const TargetType &target)
-    {
-        return std::is_array_v<TargetType> && std::rank_v<TargetType> == 1;
-    }
-
-    //--------------------------Type Traits Section End----------------------------------------
     //--------------------------Functions Section Start----------------------------------------
     // (not implemented yet) Append: mode = 0 <=> normal, mode = 1 <=> lazy, mode = 2 <=> force
     
@@ -98,7 +89,7 @@ protected:
     // Append functions for dynamic matrices
     template <typename ReturnType = void, typename TargetType>
     typename std::enable_if_t<
-        !is_declared_static_matrix_v(declared_row_size, declared_col_size),
+        !utils::is_declared_static_matrix_v(declared_row_size, declared_col_size),
         ReturnType>
     append_1d_c_array_to_rows(const TargetType &c_array, size_t row_index, int append_mode = 0)
     {
@@ -123,7 +114,7 @@ protected:
 
     template <typename ReturnType = void, typename TargetType>
     typename std::enable_if_t<
-        !is_declared_static_matrix_v(declared_row_size, declared_col_size),
+        !utils::is_declared_static_matrix_v(declared_row_size, declared_col_size),
         ReturnType>
     append_1d_c_array_to_cols(const TargetType &c_array, size_t col_index)
     {
@@ -147,7 +138,7 @@ protected:
                     j++;
                 }
                 else 
-                    std::swap(this->data_[i], temp)
+                    std::swap(this->data_[i], temp);
             }
         }
         catch (...)

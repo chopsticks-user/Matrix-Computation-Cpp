@@ -1,5 +1,8 @@
 #include "src/LinearAlgebra.hpp"
 
+#include <list>
+#include <array>
+
 // template <size_t row_size, size_t col_size, typename T>
 // auto transform_to_matrix(const T &target)
 // {
@@ -17,25 +20,25 @@
 //     }
 // }
 
-const int n = 10000;
+// const int n = 10000;
 
-void test1()
-{
-    utils::general::Timer t1;
-    for (int i = 0; i < n; i++)
-    {
-        std::vector<float> v(360000);
-    }
-}
+// void test1()
+// {
+//     utils::general::Timer t1;
+//     for (int i = 0; i < n; i++)
+//     {
+//         std::vector<float> v(360000);
+//     }
+// }
 
-void test2()
-{
-    utils::general::Timer t2;
-    for (int i = 0; i < n; i++)
-    {
-        Matrix<float, 600, 600> m2;
-    }
-}
+// void test2()
+// {
+//     utils::general::Timer t2;
+//     for (int i = 0; i < n; i++)
+//     {
+//         Matrix<float, 600, 600> m2;
+//     }
+// }
 
 int main()
 {
@@ -51,11 +54,17 @@ int main()
 
     // Matrix<int, 2, 3> m3(m2);
 
-    std::vector<int> v(9, 1);
+    std::list<int> l(10);
 
-    v.insert(v.begin() + 3, 3, 2);
+    std::array<float, 5> arr;
 
-    v.reserve(500);
+    float a[5] = {0, 0, 2, 3, 0};
+
+    arr.fill(2.1);
+
+    std::vector<float> v(9, 1);
+
+    v.insert(v.begin(), arr.begin(), arr.end());
 
     for (auto &i : v)
         std::cout << i << " ";
