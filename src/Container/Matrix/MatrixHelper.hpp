@@ -18,4 +18,6 @@ constexpr bool is_declared_static_matrix_v(size_t r_sz, size_t c_sz)
 constexpr size_t sq_mat_size(size_t r_sz, size_t c_sz)
 { return c_sz == 0 ? r_sz * r_sz : r_sz * c_sz; }
 
+
+
 #endif /* MATRIX_CONTAINER_HELPER_HPP */

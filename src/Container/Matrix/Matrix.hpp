@@ -31,6 +31,7 @@ private:
     std::shared_ptr<MatrixType> data_;
 
 public:
+    static const int a = 0;
     constexpr bool is_static_matrix_v()
     {
         return std::is_same_v<MatrixType,

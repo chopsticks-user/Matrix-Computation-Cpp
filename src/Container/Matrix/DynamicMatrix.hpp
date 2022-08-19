@@ -12,6 +12,7 @@ private:
 
 
 public:
+
     DynamicMatrix() = default;
 
     ~DynamicMatrix() = default;
@@ -34,7 +35,7 @@ public:
     {
         std::cout << std::addressof(r_matrix) << '\n';
         std::cout << "copy\n";
-        this->data_.resize(r_matrix->data_.size());
+        // this->data_.resize(r_matrix->data_.size());
         this->copy_initialize(r_matrix);
     }
 
