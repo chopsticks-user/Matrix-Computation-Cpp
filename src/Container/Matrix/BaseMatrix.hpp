@@ -19,7 +19,9 @@
 //     // virtual std::unique_ptr<AbstractMatrix> clone() const = 0;
 // };
 
-template <typename ElementType, size_t row_size = 0, size_t col_size = 0>
+template <typename ElementType,
+          size_t declared_row_size = 0,
+          size_t declared_col_size = 0>
 class BaseMatrix
 {
 protected:
@@ -27,27 +29,40 @@ protected:
     // std::enable_if::type = T
     // T = void is for the compiler to deduce T
     template <typename T = void>
-    typename std::enable_if_t<is_declared_static_matrix_v(row_size, col_size), T>
+    typename std::enable_if_t<
+        is_declared_static_matrix_v(declared_row_size, declared_col_size), T>
     default_fill_initialize(ElementType fill_value = 0)
-    { data_.fill(fill_value); }
+    {
+        data_.fill(fill_value);
+    }
 
     template <typename T = void>
-    typename std::enable_if_t<!is_declared_static_matrix_v(row_size, col_size), T>
-    default_fill_initialize(std::size_t inp_row_size = 0, std::size_t inp_col_size = 0, ElementType fill_value = 0)
-    { data_.resize(inp_row_size * inp_col_size, fill_value); }
+    typename std::enable_if_t<
+        !is_declared_static_matrix_v(declared_row_size, declared_col_size), T>
+    default_fill_initialize(std::size_t row_size = 0,
+                            std::size_t col_size = 0,
+                            ElementType fill_value = 0)
+    {
+        data_.resize(row_size * col_size, fill_value);
+    }
 
     template <class RMatrixType>
-    void copy_initialize(const RMatrixType& r_matrix)
-    { std::copy(r_matrix->data_.begin(), r_matrix->data_.end(), data_.begin()); }
+    void copy_initialize(const RMatrixType &r_matrix)
+    {
+        std::copy(r_matrix->data_.begin(), r_matrix->data_.end(), data_.begin());
+    }
 
     template <class RMatrixType>
-    void move_initialize(RMatrixType&& r_matrix)
-    { std::move(r_matrix->data_.begin(), r_matrix->data_.end(), data_.begin()); }
-    
+    void move_initialize(RMatrixType &&r_matrix)
+    {
+        std::move(r_matrix->data_.begin(), r_matrix->data_.end(), data_.begin());
+    }
+
 public:
-    typedef std::conditional_t<is_declared_static_matrix_v(row_size, col_size),
-                               std::array<ElementType, sq_mat_size(row_size, col_size)>,
-                               std::vector<ElementType>>
+    typedef std::conditional_t<
+        is_declared_static_matrix_v(declared_row_size, declared_col_size),
+        std::array<ElementType, sq_mat_size(declared_row_size, declared_col_size)>,
+        std::vector<ElementType>>
         DataType;
     DataType data_;
 

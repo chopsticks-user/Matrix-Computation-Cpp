@@ -20,13 +20,13 @@ public:
     // { return std::make_unique<DynamicMatrix>(*this); }
 
     // Matrix<int>(5) --> M<5x5>
-    DynamicMatrix(std::size_t sq_sz)
-    { this->default_fill_initialize(sq_sz, sq_sz); }
+    // DynamicMatrix(size_t sq_sz)
+    // { this->default_fill_initialize(sq_sz, sq_sz); }
 
     // Matrix<int>(5, 6, 7) --> M<5x6>, ∀ M[i, j] = 7
     // Matrix<int>(5, 6) --> M<5x6>, ∀ M[i, j] = 0
-    DynamicMatrix(std::size_t r_sz, std::size_t c_sz, ElementType init_value = 0)
-    { this->default_fill_initialize(r_sz, c_sz, init_value); }
+    DynamicMatrix(size_t row_size, size_t col_size, ElementType fill_value = 0)
+    { this->default_fill_initialize(row_size, col_size, fill_value); }
 
     // copy constructor + copy assignment, implicitly
     template <class RMatrixType>

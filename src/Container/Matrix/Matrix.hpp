@@ -10,12 +10,21 @@
 
 #include <memory>
 
-template <typename ElementType, size_t row_size = 0, size_t col_size = 0>
+// template <typename ElementType, size_t declared_row_size = 0, size_t declared_col_size = 0>
+// struct is_static_matrix_:std::is_same<>;
+
+// template <typename T>
+// struct is_static_matrix_<>
+
+template <typename ElementType,
+          size_t declared_row_size = 0,
+          size_t declared_col_size = 0>
 class Matrix
 {
-    typedef std::conditional_t<is_declared_static_matrix_v(row_size, col_size),
-                               StaticMatrix<ElementType, row_size, col_size>,
-                               DynamicMatrix<ElementType>>
+    typedef std::conditional_t<
+        is_declared_static_matrix_v(declared_row_size, declared_col_size),
+        StaticMatrix<ElementType, declared_row_size, declared_col_size>,
+        DynamicMatrix<ElementType>>
         MatrixType;
 
 private:
@@ -25,23 +34,35 @@ public:
     constexpr bool is_static_matrix_v()
     {
         return std::is_same_v<MatrixType,
-                              StaticMatrix<ElementType, row_size, col_size>>;
+                              StaticMatrix<ElementType, declared_row_size, declared_col_size>>;
+    }
+
+    constexpr bool is_dynamic_matrix_v()
+    {
+        return std::is_same_v<MatrixType,
+                              DynamicMatrix<ElementType>>;
     }
 
     Matrix() : data_(std::make_shared<MatrixType>()){};
 
-    template <typename RMatrixType>
-    Matrix(const RMatrixType &r_matrix)
-        : data_(std::make_shared<MatrixType>(r_matrix.data_))
-    {
-        std::cout << "copy \n"
-                  << std::addressof(r_matrix.data_) << '\n';
-    }
+    // template<std::enable_if_t<is_declared_static_matrix_v(declared_row_size, declared_col_size), bool> = true>
+    // Matrix(ElementType fill_value = 0)
+    // { std::cout<<"e"; }
+
+    // for static matrices only
+    Matrix(ElementType fill_value)
+        : data_(std::make_shared<MatrixType>(fill_value)){};
+
+    // for dynamic matrices only
+    Matrix(size_t row_size, size_t col_size, ElementType fill_value = 0)
+        : data_(std::make_shared<MatrixType>(row_size, col_size, fill_value)){};
 
     template <typename RMatrixType>
-    Matrix(RMatrixType &&r_matrix) : data_(std::move(r_matrix.data_))
-    {
-    }
+    Matrix(const RMatrixType &r_matrix)
+        : data_(std::make_shared<MatrixType>(r_matrix.data_)){};
+
+    template <typename RMatrixType>
+    Matrix(RMatrixType &&r_matrix) : data_(std::move(r_matrix.data_)){};
 };
 
 #endif /* LIN_ALG_CONTAINER_MATRIX_HPP */

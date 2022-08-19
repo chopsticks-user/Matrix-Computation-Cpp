@@ -27,7 +27,7 @@ int main()
     std::cout << m.is_static_matrix_v() << '\n';
 
     Matrix<float, 2> m1;
-    std::cout << m1.is_static_matrix_v() << '\n';
+    std::cout << m1.is_static_matrix_v()<< '\n';
 
     Matrix<int, 2, 3> m2;
     std::cout << m2.is_static_matrix_v() << '\n';
