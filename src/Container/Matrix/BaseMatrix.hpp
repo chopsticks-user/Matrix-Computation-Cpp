@@ -1,7 +1,6 @@
 #ifndef BASEMATRIX_HPP
 #define BASEMATRIX_HPP
 
-// #include "../../Utils/Utils.hpp"
 #include "../../Utils/Utils.hpp"
 
 #include <vector>
@@ -16,7 +15,7 @@
 // {
 // public:
 //     virtual ~AbstractMatrix() = default;
-//     // virtual std::unique_ptr<AbstractMatrix> clone() const = 0;
+//     virtual std::unique_ptr<AbstractMatrix> clone() const = 0;
 // };
 
 template <typename ElementType,
@@ -26,34 +25,35 @@ class BaseMatrix
 {
 protected:
     typedef std::conditional_t<
-        utils::is_declared_static_matrix_v(declared_row_size, declared_col_size),
-        std::array<ElementType, utils::sq_mat_size(declared_row_size, declared_col_size)>,
+        __zz_utils__::is_declared_static_matrix_v(declared_row_size, declared_col_size),
+        std::array<ElementType, __zz_utils__::sq_mat_size(declared_row_size, declared_col_size)>,
         std::vector<ElementType>>
         DataType;
     DataType data_;
 
     size_t n_rows_;
     size_t n_cols_;
-
-    //--------------------------Initialization Section Start------------------------------
-    // declare this function as a template function so that
-    // std::enable_if::type = T
+//--------------------------Initialization Section Start------------------------------
+    
+    // declare this function as a template function so that std::enable_if::type = T, 
     // T = void is for the compiler to deduce T
     template <typename T = void>
     typename std::enable_if_t<
-        utils::is_declared_static_matrix_v(declared_row_size, declared_col_size), T>
+        __zz_utils__::is_declared_static_matrix_v(declared_row_size, declared_col_size), T>
     default_fill_initialize(ElementType fill_value = 0)
     {
         data_.fill(fill_value);
         this->n_rows_ = declared_row_size;
-        this->n_cols_ = declared_col_size;
+        this->n_cols_ = declared_col_size == 0
+                            ? declared_row_size
+                            : declared_col_size;
     }
 
     template <typename T = void>
     typename std::enable_if_t<
-        !utils::is_declared_static_matrix_v(declared_row_size, declared_col_size), T>
-    default_fill_initialize(std::size_t row_size = 0,
-                            std::size_t col_size = 0,
+        !__zz_utils__::is_declared_static_matrix_v(declared_row_size, declared_col_size), T>
+    default_fill_initialize(size_t row_size = 0,
+                            size_t col_size = 0,
                             ElementType fill_value = 0)
     {
         data_.resize(row_size * col_size, fill_value);
@@ -78,88 +78,78 @@ protected:
         this->data_.resize(r_matrix->data_.size());
         std::move(r_matrix->data_.begin(), r_matrix->data_.end(), data_.begin());
     }
+//--------------------------Initialization Section End-------------------------------------
+//--------------------------Functions Section Start----------------------------------------
 
-    //--------------------------Initialization Section End-------------------------------------
-    //--------------------------Functions Section Start----------------------------------------
-    // (not implemented yet) Append: mode = 0 <=> normal, mode = 1 <=> lazy, mode = 2 <=> force
-    
-    // Assign-values functions for both static matrices and dynamic matrices
-
-    
-    // Append functions for dynamic matrices
-    template <typename ReturnType = void, typename TargetType>
-    typename std::enable_if_t<
-        !utils::is_declared_static_matrix_v(declared_row_size, declared_col_size),
-        ReturnType>
-    append_1d_c_array_to_rows(const TargetType &c_array, size_t row_index, int append_mode = 0)
+    void fill_value_to_row(ElementType fill_value, size_t row_index)
     {
-        try
-        {
-            size_t len = sizeof(c_array) / sizeof(c_array[0]);
-
-            if (len == 0)
-                return;
-            if (len != this->n_cols_)
-                throw;
-
-            this->data_.insert(this->data_.begin(), row_index * this->n_cols_, 0);
-            for (size_t i = 0; i < len; i++)
-                this->data_[row_index * this->n_cols_ + i] = c_array[i];
-        }
-        catch (...)
-        {
-            std::cerr << "An error has occurred at <append_1d_c_array_to_rows>.\n";
-        }
+        // std::fill();
     }
 
-    template <typename ReturnType = void, typename TargetType>
-    typename std::enable_if_t<
-        !utils::is_declared_static_matrix_v(declared_row_size, declared_col_size),
-        ReturnType>
-    append_1d_c_array_to_cols(const TargetType &c_array, size_t col_index)
-    {
-        try
-        {
-            size_t len = sizeof(c_array) / sizeof(c_array[0]);
+    void fill_value_to_col();
 
-            if (len == 0)
-                return;
-            if (len != this->n_rows_)
-                throw;
+    void replace_row_with();
 
-            this->data_.resize(this->data_.size() + len);
-            ElementType temp;
-            for (size_t i = col_index, j = 0; i < this->data_.size(), j < len; i++)
-            {
-                if (i % col_index == 0)
-                {
-                    ElementType temp = this->data_[i];
-                    this->data_[i] = c_array[j];
-                    j++;
-                }
-                else 
-                    std::swap(this->data_[i], temp);
-            }
-        }
-        catch (...)
-        {
-            std::cerr << "An error has occurred at <append_1d_c_array_to_cols>.\n";
-        }
-    }
+    void replace_col_with();
 
-    template <typename T>
-    void insert_1d_container(const T &target, size_t row_size, size_t col_size)
-    {
-        return;
-    }
+    void add_new_row();
 
-    //--------------------------Functions Section End------------------------------------------
+    void add_new_col();
+
+    void remove_row();
+
+    void remove_col();
+
+    void reset_data();
+
+    void change_dims();
+//--------------------------Functions Section End------------------------------------------
 
 public:
-    // virtual ~BaseMatrix() = default;
-    // virtual std::unique_ptr<BaseMatrix> clone() const = 0;
+    ElementType &access_element_at(size_t row_index, size_t col_index)
+    {
+        return this->data_[row_index * this->n_cols_ + col_index];
+    }
+
+    void display_data() noexcept
+    {
+        std::cout << "[";
+        for (size_t i = 0; i < this->n_rows_; i++)
+        {
+            std::cout << "[";
+            if (this->data_.size() / this->n_rows_ >= 1)
+                std::cout << this->data_[i * this->n_cols_];
+            for (size_t j = 1; j < this->n_cols_; j++)
+                std::cout << ", " << this->access_element_at(i, j);
+            std::cout << "]";
+            if (i < this->n_rows_ - 1)
+                std::cout << "\n ";
+        }
+        std::cout << "]\n";
+    }
 };
 
 // use enable_if to enable specialized functionalities for square matrices
-
+// (not implemented yet) Append: mode = 0 <=> normal, mode = 1 <=> lazy, mode = 2 <=> force
 #endif /* BASEMATRIX_HPP */
+
+// size_t len = sizeof(c_array) / sizeof(c_array[0]);
+
+// if (len == 0)
+//     return;
+// if (len != this->n_rows_)
+//     throw;
+
+// this->data_.resize(this->data_.size() + len);
+// ElementType temp;
+// for (size_t i = col_index, j = 0; i < this->data_.size(), j < len; i++)
+// {
+//     if (i % col_index == 0)
+//     {
+//         ElementType temp = this->data_[i];
+//         this->data_[i] = c_array[j];
+//         j++;
+//     }
+//     else
+//         std::swap(this->data_[i], temp);
+// }

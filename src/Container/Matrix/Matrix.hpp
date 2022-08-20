@@ -1,10 +1,8 @@
 #ifndef LIN_ALG_CONTAINER_MATRIX_HPP
 #define LIN_ALG_CONTAINER_MATRIX_HPP
 
-// #include "../../Utils/Utils.hpp"
 #include "DynamicMatrix.hpp"
 #include "StaticMatrix.hpp"
-#include "BaseMatrix.hpp"
 #include "MatrixHelper.hpp"
 
 // #include <type_traits>
@@ -22,7 +20,7 @@ template <typename ElementType,
 class Matrix
 {
     typedef std::conditional_t<
-        utils::is_declared_static_matrix_v(declared_row_size, declared_col_size),
+        __zz_utils__::is_declared_static_matrix_v(declared_row_size, declared_col_size),
         StaticMatrix<ElementType, declared_row_size, declared_col_size>,
         DynamicMatrix<ElementType>>
         MatrixType;
@@ -31,7 +29,6 @@ private:
     std::shared_ptr<MatrixType> data_;
 
 public:
-    static const int a = 0;
     constexpr bool is_static_matrix_v()
     {
         return std::is_same_v<MatrixType,
@@ -45,10 +42,6 @@ public:
     }
 
     Matrix() : data_(std::make_shared<MatrixType>()){};
-
-    // template<std::enable_if_t<utils::is_declared_static_matrix_v(declared_row_size, declared_col_size), bool> = true>
-    // Matrix(ElementType fill_value = 0)
-    // { std::cout<<"e"; }
 
     // for static matrices only
     Matrix(ElementType fill_value)
@@ -64,6 +57,13 @@ public:
 
     template <typename RMatrixType>
     Matrix(RMatrixType &&r_matrix) : data_(std::move(r_matrix.data_)){};
+
+    ElementType &at(size_t row_index, size_t col_index)
+    {
+        return this->data_->access_element_at(row_index, col_index);
+    }
+
+    void print() { this->data_->display_data(); }
 };
 
 #endif /* LIN_ALG_CONTAINER_MATRIX_HPP */

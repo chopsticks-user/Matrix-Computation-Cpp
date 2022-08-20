@@ -42,6 +42,32 @@ public:
     {
         this->move_initialize(r_matrix);
     } // exceptions
+//---------------------------------------------------------------------------------------
+
+    void fill_row(size_t row_index, ElementType fill_value)
+    {
+        // assign_row_value(row_index, ElementType fill_value);
+    }
+
+    void fill_col(size_t col_index, ElementType fill_value)
+    {
+        // assign_col_value(col_index, ElementType fill_value);
+    }
+
+    void assign_row(size_t row_index, ElementType fill_value)
+    {
+        // assign_row_value(row_index, const RContainerType& r_container);
+    }
+
+    void assign_col(size_t col_index, ElementType fill_value)
+    {
+        // assign_col_value(col_index, const RContainerType& r_container);
+    }
+
+    void clear()
+    {
+        // clear();
+    }
 };
 
 #endif /* LIN_ALG_CONTAINER_STATIC_MATRIX_HPP */
