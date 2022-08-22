@@ -29,8 +29,11 @@ using namespace linear_algebra;
 
 int main()
 {
-    zz_BaseMatrix<int, 5> a;
+    zz_BaseMatrix<int, 2> a;
     std::cout << typeid(a.data_).name() << '\n'
-              << a.data_.size() << '\n';
+              << a.data_.size() << '\n'
+              << a.is_dynamic_matrix() << '\n'
+              << a.is_static_matrix() << '\n';
+    a.default_fill_initialize();
     return 0;
 }
