@@ -25,7 +25,7 @@ public:
     }
 
     // Matrix<int, 5, 6>(7) --> M<5x6>, ∀ M[i, j] = 7
-    StaticMatrix(ElementType value)
+    explicit StaticMatrix(ElementType value)
     {
         this->default_fill_initialize(value);
     }

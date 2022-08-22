@@ -1,0 +1,9 @@
+#ifndef LIN_ALG_CONTAINER_STATIC_MATRIX_HPP
+#define LIN_ALG_CONTAINER_STATIC_MATRIX_HPP
+
+#include "MatrixBase.hpp"
+
+
+
+
+#endif /* LIN_ALG_CONTAINER_STATIC_MATRIX_HPP */

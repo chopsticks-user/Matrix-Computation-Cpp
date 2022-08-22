@@ -10,20 +10,12 @@
 #include <iostream>
 #include <algorithm>
 
-// polymorphic copy construction
-// class AbstractMatrix
-// {
-// public:
-//     virtual ~AbstractMatrix() = default;
-//     virtual std::unique_ptr<AbstractMatrix> clone() const = 0;
-// };
-
 template <typename ElementType,
           size_t declared_row_size = 0,
           size_t declared_col_size = 0>
 class BaseMatrix
 {
-protected:
+public:
     typedef std::conditional_t<
         __zz_utils__::is_declared_static_matrix_v(declared_row_size, declared_col_size),
         std::array<ElementType, __zz_utils__::sq_mat_size(declared_row_size, declared_col_size)>,
@@ -57,29 +49,65 @@ protected:
                             ElementType fill_value = 0)
     {
         data_.resize(row_size * col_size, fill_value);
-        this->n_rows_ = declared_row_size;
-        this->n_cols_ = declared_col_size;
+        this->n_rows_ = row_size;
+        this->n_cols_ = col_size;
     }
 
-    template <class RMatrixType>
-    void copy_initialize(const RMatrixType &r_matrix)
+    template <typename T = void, typename RMatrixType>
+    typename std::enable_if_t<
+        __zz_utils__::is_declared_static_matrix_v(declared_row_size, declared_col_size), T>
+    copy_initialize(const RMatrixType &r_matrix)
     {
-        this->n_rows_ = r_matrix->n_rows_;
-        this->n_cols_ = r_matrix->n_cols_;
-        this->data_.resize(r_matrix->data_.size());
-        std::copy(r_matrix->data_.begin(), r_matrix->data_.end(), data_.begin());
+        this->n_rows_ = r_matrix.n_rows_;
+        this->n_cols_ = r_matrix.n_cols_;
+        std::copy(r_matrix.data_.begin(), r_matrix.data_.end(), data_.begin());
     }
 
-    template <class RMatrixType>
-    void move_initialize(RMatrixType &&r_matrix)
+    template <typename T = void, typename RMatrixType>
+    typename std::enable_if_t<
+        !__zz_utils__::is_declared_static_matrix_v(declared_row_size, declared_col_size), T>
+    copy_initialize(const RMatrixType &r_matrix)
     {
-        this->n_rows_ = r_matrix->n_rows_;
-        this->n_cols_ = r_matrix->n_cols_;
-        this->data_.resize(r_matrix->data_.size());
-        std::move(r_matrix->data_.begin(), r_matrix->data_.end(), data_.begin());
+        this->n_rows_ = r_matrix.n_rows_;
+        this->n_cols_ = r_matrix.n_cols_;
+        this->data_.resize(r_matrix.data_.size());
+        std::copy(r_matrix.data_.begin(), r_matrix.data_.end(), data_.begin());
+    }
+
+    template <typename T = void, typename RMatrixType>
+    typename std::enable_if_t<
+        __zz_utils__::is_declared_static_matrix_v(declared_row_size, declared_col_size), T>
+    move_initialize(RMatrixType &&r_matrix)
+    {
+        this->n_rows_ = r_matrix.n_rows_;
+        this->n_cols_ = r_matrix.n_cols_;
+        std::move(r_matrix.data_.begin(), r_matrix.data_.end(), data_.begin());
+    }
+
+    template <typename T = void, typename RMatrixType>
+    typename std::enable_if_t<
+        !__zz_utils__::is_declared_static_matrix_v(declared_row_size, declared_col_size), T>
+    move_initialize(RMatrixType &&r_matrix)
+    {
+        this->n_rows_ = r_matrix.n_rows_;
+        this->n_cols_ = r_matrix.n_cols_;
+        this->data_.resize(r_matrix.data_.size());
+        std::move(r_matrix.data_.begin(), r_matrix.data_.end(), data_.begin());
     }
 //--------------------------Initialization Section End-------------------------------------
 //--------------------------Functions Section Start----------------------------------------
+
+    DataType& static_clone()
+    {
+        DataType cloned_data_container;
+        return std::copy(this->data_.begin(), this->data_.end(), cloned_data_container.begin());
+    }
+
+    DataType& copy_data(const DataType &other)
+    {
+        DataType cloned_data_container;
+        return std::copy(this->data_.begin(), this->data_.end(), cloned_data_container.begin());
+    }
 
     void fill_value_to_row(ElementType fill_value, size_t row_index)
     {
@@ -106,6 +134,16 @@ protected:
 //--------------------------Functions Section End------------------------------------------
 
 public:
+    size_t column_size() const
+    {
+        return this->n_cols_;
+    }
+
+    size_t row_size() const
+    {
+        return this->n_rows_;
+    }
+
     ElementType &access_element_at(size_t row_index, size_t col_index)
     {
         return this->data_[row_index * this->n_cols_ + col_index];
@@ -113,7 +151,7 @@ public:
 
     void display_data() noexcept
     {
-        std::cout << "[";
+        std::cout << "\n[";
         for (size_t i = 0; i < this->n_rows_; i++)
         {
             std::cout << "[";

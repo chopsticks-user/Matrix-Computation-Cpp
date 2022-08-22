@@ -2,18 +2,8 @@
 #define LINEAR_ALGEBRA_HPP
 
 #include "Config.hpp"
+
 #include "Container/Container.hpp"
-
-#include <iostream>
-#include <string>
-#include <vector>
-#include <list>
-#include <typeinfo>
-#include <algorithm>
-
-namespace linear_algebra
-{
-    
-}
+#include "Computation/Computation.hpp"
 
 #endif /* LINEAR_ALGEBRA_HPP */
