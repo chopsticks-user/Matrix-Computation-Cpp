@@ -31,7 +31,7 @@ namespace linear_algebra
         typedef std::vector<ElementType> DynamicContainerType;
 
         typedef std::array<ElementType,
-                           templ_row_size *(templ_col_size == 0 ? templ_row_size : templ_col_size)>
+                           templ_row_size * (templ_col_size == 0 ? templ_row_size : templ_col_size)>
             StaticContainerType;
 
         template <typename ReturnType>
@@ -76,7 +76,7 @@ namespace linear_algebra
 
         template <typename ReturnType = void>
         StaticMatrixMethod<ReturnType>
-        default_fill_initialize(ElementType fill_value = 0)
+        fill_initialize(ElementType fill_value = 0)
         {
             set_dimensions();
             data_.fill(fill_value);
@@ -84,9 +84,9 @@ namespace linear_algebra
 
         template <typename ReturnType = void>
         DynamicMatrixMethod<ReturnType>
-        default_fill_initialize(SizeType row_size,
-                                SizeType col_size,
-                                ElementType fill_value = 0)
+        fill_initialize(SizeType row_size,
+                        SizeType col_size,
+                        ElementType fill_value = 0)
         {
             set_dimensions(row_size, col_size);
             data_.resize(row_size * col_size, fill_value);
@@ -95,10 +95,10 @@ namespace linear_algebra
         template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
                   typename ReturnType = void>
         StaticMatrixMethod<ReturnType>
-        default_copy_initialize(const zz_BaseMatrix<RhsElementType,
-                                                    rhs_row_size,
-                                                    rhs_col_size>
-                                    &rhs_matrix)
+        copy_initialize(const zz_BaseMatrix<RhsElementType,
+                                            rhs_row_size,
+                                            rhs_col_size>
+                            &rhs_matrix)
         {
             if constexpr (rhs_row_size != 0)
                 static_assert(rhs_row_size == templ_row_size && rhs_col_size == templ_col_size,
@@ -119,25 +119,25 @@ namespace linear_algebra
         template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
                   typename ReturnType = void>
         DynamicMatrixMethod<ReturnType>
-        default_copy_initialize(const zz_BaseMatrix<RhsElementType,
-                                                    rhs_row_size,
-                                                    rhs_col_size>
-                                    &rhs_matrix)
+        copy_initialize(const zz_BaseMatrix<RhsElementType,
+                                            rhs_row_size,
+                                            rhs_col_size>
+                            &rhs_matrix)
         {
             if constexpr (rhs_row_size != 0)
-                default_fill_initialize(rhs_row_size, rhs_col_size);
+                fill_initialize(rhs_row_size, rhs_col_size);
             else
-                default_fill_initialize(rhs_matrix.n_rows_, rhs_matrix.n_cols_);
+                fill_initialize(rhs_matrix.n_rows_, rhs_matrix.n_cols_);
             std::copy(rhs_matrix.data_.begin(), rhs_matrix.data_.end(), data_.begin());
         }
 
         template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
                   typename ReturnType = void>
         StaticMatrixMethod<ReturnType>
-        default_move_initialize(zz_BaseMatrix<RhsElementType,
-                                                    rhs_row_size,
-                                                    rhs_col_size>
-                                    &&rhs_matrix)
+        move_initialize(zz_BaseMatrix<RhsElementType,
+                                      rhs_row_size,
+                                      rhs_col_size>
+                            &&rhs_matrix)
         {
             if constexpr (rhs_row_size != 0)
                 static_assert(rhs_row_size == templ_row_size && rhs_col_size == templ_col_size,
@@ -158,15 +158,15 @@ namespace linear_algebra
         template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
                   typename ReturnType = void>
         DynamicMatrixMethod<ReturnType>
-        default_move_initialize(zz_BaseMatrix<RhsElementType,
-                                                    rhs_row_size,
-                                                    rhs_col_size>
-                                    &&rhs_matrix)
+        move_initialize(zz_BaseMatrix<RhsElementType,
+                                      rhs_row_size,
+                                      rhs_col_size>
+                            &&rhs_matrix)
         {
             if constexpr (rhs_row_size != 0)
-                default_fill_initialize(rhs_row_size, rhs_col_size);
+                fill_initialize(rhs_row_size, rhs_col_size);
             else
-                default_fill_initialize(rhs_matrix.n_rows_, rhs_matrix.n_cols_);
+                fill_initialize(rhs_matrix.n_rows_, rhs_matrix.n_cols_);
             std::move(rhs_matrix.data_.begin(), rhs_matrix.data_.end(), data_.begin());
         }
 
@@ -175,6 +175,19 @@ namespace linear_algebra
             DataContainerType cloned_data;
             std::copy(data_.begin(), data_.end(), cloned_data.begin());
             return cloned_data;
+        }
+
+        ElementType &access_element_at(SizeType row_index, SizeType col_index)
+        {
+            try
+            {
+                return data_.at(row_index * n_cols_ + col_index);
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << e.what() << '\n';                
+                throw(e);
+            }
         }
     };
 } /* linear_algebra */

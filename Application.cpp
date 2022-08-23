@@ -23,6 +23,18 @@ public:
         this->a = std::move(r.a);
         return *this;
     }
+    A b()
+    {
+        this->a++;
+        std::cout << this->a << "\n";
+        return *this;
+    }
+    A c()
+    {
+        this->a += 2;
+        std::cout << this->a << "\n";
+        return *this;
+    }
 };
 
 using namespace linear_algebra;
@@ -32,33 +44,26 @@ auto cr()
     return zz_BaseMatrix<int>();
 }
 
-constexpr auto bb(int a)
-{
-    return a;
-}
-
 int main()
 {
     auto a = cr();
-    a.default_fill_initialize(5, 5, 10);
+    a.fill_initialize(5, 5, 10);
     auto b = zz_BaseMatrix<int, 5, 5>();
-    b.default_move_initialize(std::move(a));
+    b.move_initialize(std::move(a));
     auto c = zz_BaseMatrix<int>();
-    c.default_move_initialize(std::move(b));
+    c.move_initialize(std::move(b));
+    c.access_element_at(4, 4) = 100;
 
-    // auto cb = b.clone_data();
-    // b.data_[0] = 100;
-    // std::cout<<cb[0];
+    utility::validate_matrix_dimensions<0, 0>();
 
-    std::cout << a.n_rows_ << '\n'
-              << a.n_cols_ << '\n'
-              << a.data_[0] << '\n'
-              << typeid(a.data_).name() << '\n';
+    constexpr bool bbb = utility::is_dynamic_matrix_vv<2, 3>::value;
 
-    // std::cout << typeid(a.data_).name() << '\n'
-    //           << a.data_.size() << '\n'
-    //           << a.is_dynamic_matrix() << '\n'
-    //           << a.is_static_matrix() << '\n';
-    // // a.default_fill_initialize();
+    std::cout << bbb << '\n';
+
+    // std::cout << a.n_rows_ << '\n'
+    //           << a.n_cols_ << '\n'
+    //           << a.data_[0] << '\n'
+    //           << typeid(a.data_).name() << '\n';
+
     return 0;
 }
