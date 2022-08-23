@@ -47,14 +47,22 @@ using namespace linear_algebra;
 int main()
 {
     auto a = zz_BaseMatrix<int>();
+    a.fill_initialize(10, 6, 19);
     auto b = zz_BaseMatrix<int, 5>();
     auto c = zz_BaseMatrix<int, 5, 6>();
-    c.access_element_at(4, 4) = 100;
+    a(4, 4) = 100;
 
     std::cout << a.data_.size() << " " << a.is_dynamic() << " " << a.is_static() << '\n';
     std::cout << b.data_.size() << " " << b.is_dynamic() << " " << b.is_static() << '\n';
     std::cout << c.data_.size() << " " << c.is_dynamic() << " " << c.is_static() << '\n';
     std::cout << utility::check_if_dynamic_matrix(0, 0) << '\n';
+
+    std::vector<int> v(5,5);
+    utility::print_1d_container(v.begin(), v.end());
+    utility::print_1d_container(v.begin(), v.end());
+    std::cout << a;
+    std::cout << a(4, 4)<<'\n';
+
 
     // constexpr auto aaa = utility::check_if_static_square_matrix<0, 0>();
 

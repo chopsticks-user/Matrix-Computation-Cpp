@@ -1,5 +1,6 @@
 
 #include <type_traits>
+#include <iostream>
 
 namespace utility
 {
@@ -113,6 +114,15 @@ namespace utility
     template <SizeType row_size, SizeType col_size>
     using is_declared_static_matrix_v =
         typename is_declared_static_matrix<row_size, col_size>::value;
+
+    template <typename ContainerItType>
+    void print_1d_container(ContainerItType it_begin, ContainerItType it_end)
+    {
+        std::cout << '[' << *it_begin;
+        for (; it_begin != it_end; it_begin++)
+            std::cout << ", " << *it_begin;
+        std::cout << "]\n";
+    }
 
     // in Matrix.hpp
     template <typename T>

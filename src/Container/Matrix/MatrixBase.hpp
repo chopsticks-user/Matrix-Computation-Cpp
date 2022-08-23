@@ -66,6 +66,7 @@ namespace linear_algebra
             return utility::is_declared_dynamic_matrix<templ_row_size,
                                                        templ_col_size>{};
         }
+
         constexpr bool is_static()
         {
             return utility::is_declared_static_matrix<templ_row_size,
@@ -77,7 +78,7 @@ namespace linear_algebra
         set_dimensions()
         {
             n_rows_ = templ_row_size;
-            n_cols_ = templ_col_size == 0 ? templ_row_size : templ_col_size;
+            n_cols_ = utility::verified_matrix_col_size<templ_row_size, templ_col_size>();
         }
 
         template <typename ReturnType = void>
@@ -85,7 +86,7 @@ namespace linear_algebra
         set_dimensions(SizeType row_size, SizeType col_size)
         {
             n_rows_ = row_size;
-            n_cols_ = col_size == 0 ? row_size : col_size;
+            n_cols_ = utility::verified_matrix_col_size(row_size, col_size);
         }
 
         template <typename ReturnType = void>
@@ -184,14 +185,15 @@ namespace linear_algebra
             std::move(rhs_matrix.data_.begin(), rhs_matrix.data_.end(), data_.begin());
         }
 
-        DataContainerType clone_data()
+        DataContainerType clone_data() const
         {
             DataContainerType cloned_data;
             std::copy(data_.begin(), data_.end(), cloned_data.begin());
             return cloned_data;
         }
 
-        ElementType &access_element_at(SizeType row_index, SizeType col_index)
+        // No bounds checking
+        ElementType &operator()(SizeType row_index, SizeType col_index)
         {
             try
             {
@@ -203,6 +205,39 @@ namespace linear_algebra
                 throw(e);
             }
         }
+
+        const ElementType &operator()(SizeType row_index, SizeType col_index) const
+        {
+            try
+            {
+                return data_.at(row_index * n_cols_ + col_index);
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << e.what() << '\n';
+                throw(e);
+            }
+        }
+
+        friend std::ostream &operator<<(std::ostream &os, const zz_BaseMatrix &rhs_matrix)
+        {
+            os << "\n[";
+            for (size_t i = 0; i < rhs_matrix.n_rows_; i++)
+            {
+                os << "[";
+                if (rhs_matrix.data_.size() / rhs_matrix.n_rows_ >= 1)
+                    os << rhs_matrix.data_[i * rhs_matrix.n_cols_];
+                for (size_t j = 1; j < rhs_matrix.n_cols_; j++)
+                    os << ", " << rhs_matrix.data_[i * rhs_matrix.n_cols_ + j];
+                os << "]";
+                if (i < rhs_matrix.n_rows_ - 1)
+                    os << "\n ";
+            }
+            os << "]\n";
+            return os;
+        }
+    
+        
     };
 } /* linear_algebra */
 
