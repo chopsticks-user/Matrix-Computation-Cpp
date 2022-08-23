@@ -37,6 +37,11 @@ public:
     }
 };
 
+// constexpr void aaa(long a, long b)
+// {
+//     utility::verified_matrix_data_container_size<a, b>();
+// }
+
 using namespace linear_algebra;
 
 int main()
@@ -49,6 +54,7 @@ int main()
     std::cout << a.data_.size() << " " << a.is_dynamic() << " " << a.is_static() << '\n';
     std::cout << b.data_.size() << " " << b.is_dynamic() << " " << b.is_static() << '\n';
     std::cout << c.data_.size() << " " << c.is_dynamic() << " " << c.is_static() << '\n';
+    std::cout << utility::check_if_dynamic_matrix(0, 0) << '\n';
 
     // constexpr auto aaa = utility::check_if_static_square_matrix<0, 0>();
 

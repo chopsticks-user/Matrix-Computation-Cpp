@@ -35,17 +35,32 @@ namespace utility
         return row_size == 0;
     }
 
+    bool check_if_dynamic_matrix(SizeType row_size, SizeType col_size)
+    {
+        return row_size == 0 && col_size == 0;
+    }
+
     template <SizeType row_size, SizeType col_size>
     constexpr bool check_if_static_matrix()
     {
         validate_matrix_dimensions<row_size, col_size>();
-        return row_size != 0;
+        return row_size > 0;
+    }
+
+    bool check_if_static_matrix(SizeType row_size, SizeType col_size)
+    {
+        return row_size > 0;
     }
 
     template <SizeType row_size, SizeType col_size>
     constexpr bool check_if_static_square_matrix()
     {
         validate_matrix_dimensions<row_size, col_size>();
+        return row_size > 0 && (col_size == 0 || row_size == col_size);
+    }
+
+    bool check_if_static_square_matrix(SizeType row_size, SizeType col_size)
+    {
         return row_size > 0 && (col_size == 0 || row_size == col_size);
     }
 
@@ -57,10 +72,24 @@ namespace utility
         return col_size;
     }
 
+    SizeType verified_matrix_col_size(SizeType row_size, SizeType col_size)
+    {
+        if (check_if_static_square_matrix(row_size, col_size) == true)
+            return row_size;
+        return col_size;
+    }
+
     template <SizeType row_size, SizeType col_size>
     constexpr SizeType verified_matrix_data_container_size()
     {
         return row_size * verified_matrix_col_size<row_size, col_size>();
+    }
+
+    SizeType verified_matrix_data_container_size(
+        SizeType row_size,
+        SizeType col_size)
+    {
+        return row_size * verified_matrix_col_size(row_size, col_size);
     }
 
     template <SizeType row_size, SizeType col_size>
