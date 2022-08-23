@@ -39,26 +39,22 @@ public:
 
 using namespace linear_algebra;
 
-auto cr()
-{
-    return zz_BaseMatrix<int>();
-}
-
 int main()
 {
-    auto a = cr();
-    a.fill_initialize(5, 5, 10);
-    auto b = zz_BaseMatrix<int, 5, 5>();
-    b.move_initialize(std::move(a));
-    auto c = zz_BaseMatrix<int>();
-    c.move_initialize(std::move(b));
+    auto a = zz_BaseMatrix<int>();
+    auto b = zz_BaseMatrix<int, 5>();
+    auto c = zz_BaseMatrix<int, 5, 6>();
     c.access_element_at(4, 4) = 100;
 
-    utility::validate_matrix_dimensions<0, 0>();
+    std::cout << a.data_.size() << " " << a.is_dynamic() << " " << a.is_static() << '\n';
+    std::cout << b.data_.size() << " " << b.is_dynamic() << " " << b.is_static() << '\n';
+    std::cout << c.data_.size() << " " << c.is_dynamic() << " " << c.is_static() << '\n';
 
-    constexpr bool bbb = utility::is_dynamic_matrix_vv<2, 3>::value;
+    // constexpr auto aaa = utility::check_if_static_square_matrix<0, 0>();
 
-    std::cout << bbb << '\n';
+    // std::cout<< utility::check_if_static_square_matrix<0, 0>()<<'\n';
+    // std::cout<< utility::verified_matrix_col_size<25, 0>()<<'\n';
+    // std::cout<< utility::verified_matrix_data_container_size<25, 3>()<<'\n';
 
     // std::cout << a.n_rows_ << '\n'
     //           << a.n_cols_ << '\n'

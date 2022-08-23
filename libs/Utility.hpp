@@ -29,6 +29,77 @@ namespace utility
     }
 
     template <SizeType row_size, SizeType col_size>
-    using is_dynamic_matrix_vv =
-        std::integral_constant<bool, row_size == 0 && col_size == 0>;
+    constexpr bool check_if_dynamic_matrix()
+    {
+        validate_matrix_dimensions<row_size, col_size>();
+        return row_size == 0;
+    }
+
+    template <SizeType row_size, SizeType col_size>
+    constexpr bool check_if_static_matrix()
+    {
+        validate_matrix_dimensions<row_size, col_size>();
+        return row_size != 0;
+    }
+
+    template <SizeType row_size, SizeType col_size>
+    constexpr bool check_if_static_square_matrix()
+    {
+        validate_matrix_dimensions<row_size, col_size>();
+        return row_size > 0 && (col_size == 0 || row_size == col_size);
+    }
+
+    template <SizeType row_size, SizeType col_size>
+    constexpr SizeType verified_matrix_col_size()
+    {
+        if constexpr (check_if_static_square_matrix<row_size, col_size>() == true)
+            return row_size;
+        return col_size;
+    }
+
+    template <SizeType row_size, SizeType col_size>
+    constexpr SizeType verified_matrix_data_container_size()
+    {
+        return row_size * verified_matrix_col_size<row_size, col_size>();
+    }
+
+    template <SizeType row_size, SizeType col_size>
+    struct is_declared_dynamic_matrix
+        : public std::integral_constant<
+              bool, check_if_dynamic_matrix<row_size, col_size>()>
+    {
+    };
+
+    template <SizeType row_size, SizeType col_size>
+    using is_declared_dynamic_matrix_v =
+        typename is_declared_dynamic_matrix<row_size, col_size>::value;
+
+    template <SizeType row_size, SizeType col_size>
+    struct is_declared_static_matrix
+        : public std::integral_constant<
+              bool, check_if_static_matrix<row_size, col_size>()>
+    {
+    };
+
+    template <SizeType row_size, SizeType col_size>
+    using is_declared_static_matrix_v =
+        typename is_declared_static_matrix<row_size, col_size>::value;
+
+    // in Matrix.hpp
+    template <typename T>
+    struct is_dynamic_matrix : public std::false_type
+    {
+    };
+
+    // in Matrix.hpp
+    template <template <typename ElementType,
+                        SizeType row_size,
+                        SizeType col_size>
+              class T,
+              typename ElementType>
+    struct is_dynamic_matrix<T<ElementType, 0, 0>>
+        : public std::true_type
+    {
+    };
+
 }

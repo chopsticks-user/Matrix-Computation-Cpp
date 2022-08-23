@@ -31,16 +31,22 @@ namespace linear_algebra
         typedef std::vector<ElementType> DynamicContainerType;
 
         typedef std::array<ElementType,
-                           templ_row_size * (templ_col_size == 0 ? templ_row_size : templ_col_size)>
+                           utility::verified_matrix_data_container_size<
+                               templ_row_size,
+                               templ_col_size>()>
             StaticContainerType;
 
         template <typename ReturnType>
         using DynamicMatrixMethod = typename std::enable_if_t<
-            templ_row_size == 0, ReturnType>;
+            utility::is_declared_dynamic_matrix<templ_row_size,
+                                                templ_col_size>{},
+            ReturnType>;
 
         template <typename ReturnType>
         using StaticMatrixMethod = typename std::enable_if_t<
-            templ_row_size != 0, ReturnType>;
+            utility::is_declared_static_matrix<templ_row_size,
+                                               templ_col_size>{},
+            ReturnType>;
 
         typedef std::conditional_t<templ_row_size == 0,
                                    DynamicContainerType,
@@ -55,8 +61,16 @@ namespace linear_algebra
         SizeType n_rows_;
         SizeType n_cols_;
 
-        constexpr bool is_dynamic_matrix() { return templ_row_size == 0; }
-        constexpr bool is_static_matrix() { return !is_dynamic_matrix(); }
+        constexpr bool is_dynamic()
+        {
+            return utility::is_declared_dynamic_matrix<templ_row_size,
+                                                       templ_col_size>{};
+        }
+        constexpr bool is_static()
+        {
+            return utility::is_declared_static_matrix<templ_row_size,
+                                                      templ_col_size>{};
+        }
 
         template <typename ReturnType = void>
         StaticMatrixMethod<ReturnType>
@@ -183,9 +197,9 @@ namespace linear_algebra
             {
                 return data_.at(row_index * n_cols_ + col_index);
             }
-            catch(const std::exception& e)
+            catch (const std::exception &e)
             {
-                std::cerr << e.what() << '\n';                
+                std::cerr << e.what() << '\n';
                 throw(e);
             }
         }
