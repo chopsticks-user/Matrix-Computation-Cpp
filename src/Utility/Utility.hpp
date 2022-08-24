@@ -1,10 +1,54 @@
 
 #include <type_traits>
 #include <iostream>
+#include <chrono>
+#include <random>
 
 namespace utility
 {
-    typedef long SizeType;
+    class Timer
+    {
+    private:
+        std::chrono::high_resolution_clock::time_point start;
+        std::string time_unit;
+
+    public:
+        Timer()
+        {
+            this->start = std::chrono::high_resolution_clock::now();
+            this->time_unit = "milliseconds";
+        }
+        Timer(std::string &&time_unit)
+        {
+            this->start = std::chrono::high_resolution_clock::now();
+            if (time_unit == "microseconds")
+            {
+                this->time_unit = "microseconds";
+                return;
+            }
+            this->time_unit = "milliseconds";
+        }
+        ~Timer()
+        {
+            auto stop = std::chrono::high_resolution_clock::now();
+            if (this->time_unit == "microseconds")
+            {
+                std::cout << "\nTime elapsed: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << " microseconds\n";
+                return;
+            }
+            std::cout << "\nTime elapsed: " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << " ms\n";
+        }
+    };
+
+    long long rand(long long min, long long max)
+    {
+        std::random_device rd;
+        std::mt19937 rng(rd());
+        std::uniform_int_distribution<long long> dist(min, max);
+        return dist(rng);
+    }
+
+    typedef size_t SizeType;
 
     template <typename T>
     constexpr bool is_lvalue(T &&)
@@ -17,6 +61,13 @@ namespace utility
     {
         return std::is_rvalue_reference<T &&>{};
     };
+
+    template <typename T>
+    constexpr void require_nothrow_destructible_type()
+    {
+        static_assert(std::is_nothrow_destructible_v<T>,
+                      "Type must have a non-throwing destructor.");
+    }
 
     template <SizeType row_size, SizeType col_size>
     constexpr void validate_matrix_dimensions()
@@ -91,6 +142,17 @@ namespace utility
         SizeType col_size)
     {
         return row_size * verified_matrix_col_size(row_size, col_size);
+    }
+
+    template <SizeType row_size1, SizeType col_size1,
+              SizeType row_size2, SizeType col_size2>
+    constexpr bool check_if_equal_dimensions()
+    {
+        if constexpr (row_size1 == row_size2)
+            if constexpr (verified_matrix_col_size<row_size1, col_size1>() ==
+                          verified_matrix_col_size<row_size2, col_size2>())
+                return true;
+        return false;
     }
 
     template <SizeType row_size, SizeType col_size>

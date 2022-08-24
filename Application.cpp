@@ -1,79 +1,29 @@
 #include "src/LinearAlgebra.hpp"
+#include "src/Exception/Exception.hpp"
 
 #include <list>
 #include <array>
 #include <typeinfo>
 
-class A
-{
-    int a = 0;
-
-public:
-    A() = default;
-    explicit A(int a) : a(a){};
-    A(const A &r) = default;
-    A(A &&r) = default;
-    A &operator=(const A &r)
-    {
-        this->a = r.a;
-        return *this;
-    }
-    A &operator=(A &&r)
-    {
-        this->a = std::move(r.a);
-        return *this;
-    }
-    A b()
-    {
-        this->a++;
-        std::cout << this->a << "\n";
-        return *this;
-    }
-    A c()
-    {
-        this->a += 2;
-        std::cout << this->a << "\n";
-        return *this;
-    }
-};
-
-// constexpr void aaa(long a, long b)
-// {
-//     utility::verified_matrix_data_container_size<a, b>();
-// }
-
-using namespace linear_algebra;
+using namespace zz_no_inc;
 
 int main()
 {
-    auto a = zz_BaseMatrix<int>();
-    a.fill_initialize(10, 6, 19);
-    auto b = zz_BaseMatrix<int, 5>();
-    auto c = zz_BaseMatrix<int, 5, 6>();
-    a(4, 4) = 100;
 
-    std::cout << a.data_.size() << " " << a.is_dynamic() << " " << a.is_static() << '\n';
-    std::cout << b.data_.size() << " " << b.is_dynamic() << " " << b.is_static() << '\n';
-    std::cout << c.data_.size() << " " << c.is_dynamic() << " " << c.is_static() << '\n';
-    std::cout << utility::check_if_dynamic_matrix(0, 0) << '\n';
+    try
+    {
+        DynamicMatrix_<int> a(5, 5, 1);
+        DynamicMatrix_<int> b(a);
 
-    std::vector<int> v(5,5);
-    utility::print_1d_container(v.begin(), v.end());
-    utility::print_1d_container(v.begin(), v.end());
-    std::cout << a;
-    std::cout << a(4, 4)<<'\n';
+        a.fill_all_element_with_(56);
+        b.fill_all_element_with_(12);
 
-
-    // constexpr auto aaa = utility::check_if_static_square_matrix<0, 0>();
-
-    // std::cout<< utility::check_if_static_square_matrix<0, 0>()<<'\n';
-    // std::cout<< utility::verified_matrix_col_size<25, 0>()<<'\n';
-    // std::cout<< utility::verified_matrix_data_container_size<25, 3>()<<'\n';
-
-    // std::cout << a.n_rows_ << '\n'
-    //           << a.n_cols_ << '\n'
-    //           << a.data_[0] << '\n'
-    //           << typeid(a.data_).name() << '\n';
-
+        std::cout << a;
+        std::cout << b;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+    }
     return 0;
 }

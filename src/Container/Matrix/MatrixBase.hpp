@@ -1,8 +1,8 @@
 #ifndef LIN_ALG_CONTAINER_BASEMATRIX_HPP
 #define LIN_ALG_CONTAINER_BASEMATRIX_HPP
 
-#include "../../../libs/Algorithm.hpp"
-#include "../../../libs/Utility.hpp"
+#include "../../Algorithm/Algorithm.hpp"
+#include "../../Utility/Utility.hpp"
 
 #include <vector>
 #include <array>
@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-namespace linear_algebra
+namespace zz_no_inc
 {
     /**
      * @brief Matrix Base.
@@ -24,7 +24,7 @@ namespace linear_algebra
     template <typename ElementType,
               utility::SizeType templ_row_size = 0,
               utility::SizeType templ_col_size = 0>
-    struct zz_BaseMatrix
+    struct MatrixBase_
     {
         typedef utility::SizeType SizeType;
 
@@ -57,73 +57,80 @@ namespace linear_algebra
          * If both the size of column and row are either unspecified or equal to zero, data is stored
          * in a standard array. Otherwise, data is stored in a standard vector.
          */
-        DataContainerType data_;
-        SizeType n_rows_;
-        SizeType n_cols_;
+        DataContainerType data__;
+        SizeType n_rows__;
+        SizeType n_cols__;
 
-        constexpr bool is_dynamic()
+        constexpr bool is_dynamic_()
         {
             return utility::is_declared_dynamic_matrix<templ_row_size,
                                                        templ_col_size>{};
         }
 
-        constexpr bool is_static()
+        constexpr bool is_static_()
         {
             return utility::is_declared_static_matrix<templ_row_size,
                                                       templ_col_size>{};
         }
 
+        const SizeType &get_row_size_() const noexcept { return n_rows__; }
+
+        const SizeType &get_col_size_() const noexcept { return n_cols__; }
+
         template <typename ReturnType = void>
         StaticMatrixMethod<ReturnType>
-        set_dimensions()
+        set_dimensions_()
         {
-            n_rows_ = templ_row_size;
-            n_cols_ = utility::verified_matrix_col_size<templ_row_size, templ_col_size>();
+            n_rows__ = templ_row_size;
+            n_cols__ = utility::verified_matrix_col_size<templ_row_size, templ_col_size>();
         }
 
         template <typename ReturnType = void>
         DynamicMatrixMethod<ReturnType>
-        set_dimensions(SizeType row_size, SizeType col_size)
+        set_dimensions_(SizeType row_size, SizeType col_size)
         {
-            n_rows_ = row_size;
-            n_cols_ = utility::verified_matrix_col_size(row_size, col_size);
+            n_rows__ = row_size;
+            n_cols__ = utility::verified_matrix_col_size(row_size, col_size);
         }
 
         template <typename ReturnType = void>
         StaticMatrixMethod<ReturnType>
-        fill_initialize(ElementType fill_value = 0)
+        fill_initialize_(ElementType fill_value = 0)
         {
-            set_dimensions();
-            data_.fill(fill_value);
+            set_dimensions_();
+            data__.fill(fill_value);
         }
 
         template <typename ReturnType = void>
         DynamicMatrixMethod<ReturnType>
-        fill_initialize(SizeType row_size,
-                        SizeType col_size,
-                        ElementType fill_value = 0)
+        fill_initialize_(SizeType row_size,
+                         SizeType col_size,
+                         ElementType fill_value = 0)
         {
-            set_dimensions(row_size, col_size);
-            data_.resize(row_size * col_size, fill_value);
+            set_dimensions_(row_size, col_size);
+            data__.resize(row_size * col_size, fill_value);
         }
 
         template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
                   typename ReturnType = void>
         StaticMatrixMethod<ReturnType>
-        copy_initialize(const zz_BaseMatrix<RhsElementType,
-                                            rhs_row_size,
-                                            rhs_col_size>
-                            &rhs_matrix)
+        copy_initialize_(const MatrixBase_<RhsElementType,
+                                           rhs_row_size,
+                                           rhs_col_size>
+                             &rhs_matrix)
         {
             if constexpr (rhs_row_size != 0)
-                static_assert(rhs_row_size == templ_row_size && rhs_col_size == templ_col_size,
+                static_assert(utility::check_if_equal_dimensions<
+                                  templ_row_size, templ_col_size,
+                                  rhs_row_size, rhs_col_size>(),
                               "Copy to a static matrix: Dimensions mismatch.");
-            set_dimensions();
+            set_dimensions_();
             try
             {
-                if (rhs_matrix.n_rows_ != templ_row_size || rhs_matrix.n_cols_ != templ_col_size)
+                if (rhs_matrix.n_rows__ != templ_row_size ||
+                    rhs_matrix.n_cols__ != utility::verified_matrix_col_size(templ_row_size, templ_col_size))
                     throw std::runtime_error("Copy to a static matrix: Dimensions mismatch.");
-                std::copy(rhs_matrix.data_.begin(), rhs_matrix.data_.end(), data_.begin());
+                std::copy(rhs_matrix.data__.begin(), rhs_matrix.data__.end(), data__.begin());
             }
             catch (const std::runtime_error &e)
             {
@@ -134,35 +141,38 @@ namespace linear_algebra
         template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
                   typename ReturnType = void>
         DynamicMatrixMethod<ReturnType>
-        copy_initialize(const zz_BaseMatrix<RhsElementType,
-                                            rhs_row_size,
-                                            rhs_col_size>
-                            &rhs_matrix)
+        copy_initialize_(const MatrixBase_<RhsElementType,
+                                           rhs_row_size,
+                                           rhs_col_size>
+                             &rhs_matrix)
         {
             if constexpr (rhs_row_size != 0)
-                fill_initialize(rhs_row_size, rhs_col_size);
+                fill_initialize_(rhs_row_size, rhs_col_size);
             else
-                fill_initialize(rhs_matrix.n_rows_, rhs_matrix.n_cols_);
-            std::copy(rhs_matrix.data_.begin(), rhs_matrix.data_.end(), data_.begin());
+                fill_initialize_(rhs_matrix.n_rows__, rhs_matrix.n_cols__);
+            std::copy(rhs_matrix.data__.begin(), rhs_matrix.data__.end(), data__.begin());
         }
 
         template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
                   typename ReturnType = void>
         StaticMatrixMethod<ReturnType>
-        move_initialize(zz_BaseMatrix<RhsElementType,
-                                      rhs_row_size,
-                                      rhs_col_size>
-                            &&rhs_matrix)
+        move_initialize_(MatrixBase_<RhsElementType,
+                                     rhs_row_size,
+                                     rhs_col_size>
+                             &&rhs_matrix)
         {
             if constexpr (rhs_row_size != 0)
-                static_assert(rhs_row_size == templ_row_size && rhs_col_size == templ_col_size,
-                              "Move to a static matrix: Dimensions mismatch.");
-            set_dimensions();
+                static_assert(utility::check_if_equal_dimensions<
+                                  templ_row_size, templ_col_size,
+                                  rhs_row_size, rhs_col_size>(),
+                              "Copy to a static matrix: Dimensions mismatch.");
+            set_dimensions_();
             try
             {
-                if (rhs_matrix.n_rows_ != templ_row_size || rhs_matrix.n_cols_ != templ_col_size)
-                    throw std::runtime_error("Move to a static matrix: Dimensions mismatch.");
-                std::move(rhs_matrix.data_.begin(), rhs_matrix.data_.end(), data_.begin());
+                if (rhs_matrix.n_rows__ != templ_row_size ||
+                    rhs_matrix.n_cols__ != utility::verified_matrix_col_size(templ_row_size, templ_col_size))
+                    throw std::runtime_error("Copy to a static matrix: Dimensions mismatch.");
+                std::move(rhs_matrix.data__.begin(), rhs_matrix.data__.end(), data__.begin());
             }
             catch (const std::runtime_error &e)
             {
@@ -173,71 +183,87 @@ namespace linear_algebra
         template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
                   typename ReturnType = void>
         DynamicMatrixMethod<ReturnType>
-        move_initialize(zz_BaseMatrix<RhsElementType,
-                                      rhs_row_size,
-                                      rhs_col_size>
-                            &&rhs_matrix)
+        move_initialize_(MatrixBase_<RhsElementType,
+                                     rhs_row_size,
+                                     rhs_col_size>
+                             &&rhs_matrix)
         {
             if constexpr (rhs_row_size != 0)
-                fill_initialize(rhs_row_size, rhs_col_size);
+                fill_initialize_(rhs_row_size, rhs_col_size);
             else
-                fill_initialize(rhs_matrix.n_rows_, rhs_matrix.n_cols_);
-            std::move(rhs_matrix.data_.begin(), rhs_matrix.data_.end(), data_.begin());
+                fill_initialize_(rhs_matrix.n_rows__, rhs_matrix.n_cols__);
+            std::move(rhs_matrix.data__.begin(), rhs_matrix.data__.end(), data__.begin());
         }
 
-        DataContainerType clone_data() const
-        {
-            DataContainerType cloned_data;
-            std::copy(data_.begin(), data_.end(), cloned_data.begin());
-            return cloned_data;
-        }
-
-        // No bounds checking
+        /// Safety check is handled by either std::array or std::vector.
         ElementType &operator()(SizeType row_index, SizeType col_index)
         {
-            try
-            {
-                return data_.at(row_index * n_cols_ + col_index);
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << e.what() << '\n';
-                throw(e);
-            }
+            return data__.at(row_index * n_cols__ + col_index);
         }
 
+        /// Safety check is handled by either std::array or std::vector.
         const ElementType &operator()(SizeType row_index, SizeType col_index) const
         {
-            try
-            {
-                return data_.at(row_index * n_cols_ + col_index);
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << e.what() << '\n';
-                throw(e);
-            }
+            return data__.at(row_index * n_cols__ + col_index);
         }
 
-        friend std::ostream &operator<<(std::ostream &os, const zz_BaseMatrix &rhs_matrix)
+        /// No-throw if ElementType can be printed by std::cout
+        friend std::ostream &operator<<(std::ostream &os, const MatrixBase_ &rhs_matrix)
         {
             os << "\n[";
-            for (size_t i = 0; i < rhs_matrix.n_rows_; i++)
+            for (size_t i = 0; i < rhs_matrix.n_rows__; i++)
             {
                 os << "[";
-                if (rhs_matrix.data_.size() / rhs_matrix.n_rows_ >= 1)
-                    os << rhs_matrix.data_[i * rhs_matrix.n_cols_];
-                for (size_t j = 1; j < rhs_matrix.n_cols_; j++)
-                    os << ", " << rhs_matrix.data_[i * rhs_matrix.n_cols_ + j];
+                if (rhs_matrix.data__.size() / rhs_matrix.n_rows__ >= 1)
+                    os << rhs_matrix.data__[i * rhs_matrix.n_cols__];
+                for (size_t j = 1; j < rhs_matrix.n_cols__; j++)
+                    os << ", " << rhs_matrix.data__[i * rhs_matrix.n_cols__ + j];
                 os << "]";
-                if (i < rhs_matrix.n_rows_ - 1)
+                if (i < rhs_matrix.n_rows__ - 1)
                     os << "\n ";
             }
             os << "]\n";
             return os;
         }
-    
-        
+
+        DataContainerType clone_data_() const
+        {
+            DataContainerType cloned_data;
+            std::copy(data__.begin(), data__.end(), cloned_data.begin());
+            return cloned_data;
+        }
+
+        MatrixBase_ &fill_all_element_with_(ElementType fill_value)
+        {
+            std::fill(data__.begin(), data__.end(), fill_value);
+            return *this;
+        }
+
+        MatrixBase_ &fill_value_to_row_(SizeType row_index, ElementType fill_value)
+        {
+            if (row_index >= n_rows__)
+                throw std::out_of_range("Row index is out of range.");
+            std::fill(data__.begin() + n_cols__ * row_index,
+                      data__.begin() + n_cols__ * (row_index + 1),
+                      fill_value);
+            return *this;
+        }
+
+        MatrixBase_ &fill_value_to_col_(SizeType col_index, ElementType fill_value)
+        {
+            if (col_index >= n_cols__)
+                throw std::out_of_range("Column index is out of range.");
+            if (n_cols__ == 1)
+                fill_all_element_with_(fill_value);
+            for (auto i = col_index; i < n_rows__ * n_cols__; i += n_cols__)
+                data__.at(i) = fill_value;
+            return *this;
+        }
+
+        // ~MatrixBase_() noexcept
+        // {
+        //     std::cout << "An instance of MatrixBase_ has been destroyed.\n";
+        // }
     };
 } /* linear_algebra */
 
