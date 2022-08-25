@@ -7,7 +7,6 @@
 #include <vector>
 #include <array>
 #include <memory>
-#include <type_traits>
 #include <iostream>
 #include <algorithm>
 #include <stdexcept>
@@ -48,7 +47,9 @@ namespace zz_no_inc
                                                templ_col_size>{},
             ReturnType>;
 
-        typedef std::conditional_t<templ_row_size == 0,
+        typedef std::conditional_t<utility::check_if_dynamic_matrix<
+                                       templ_row_size,
+                                       templ_col_size>(),
                                    DynamicContainerType,
                                    StaticContainerType>
             DataContainerType;
@@ -87,7 +88,7 @@ namespace zz_no_inc
 
         template <typename ReturnType = void>
         DynamicMatrixMethod<ReturnType>
-        set_dimensions_(SizeType row_size, SizeType col_size)
+        set_dimensions_(SizeType row_size = 0, SizeType col_size = 0)
         {
             n_rows__ = row_size;
             n_cols__ = utility::verified_matrix_col_size(row_size, col_size);
