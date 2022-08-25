@@ -203,4 +203,13 @@ namespace utility
     {
     };
 
+    template <typename SeqContainer1D>
+    SizeType get_1d_seq_container_size(const SeqContainer1D &container)
+    {
+        if constexpr (std::is_array_v<SeqContainer1D>)
+            return sizeof(container) / sizeof(container[0]); // might throw
+        else
+            return container.size(); // might throw
+    }
+
 }

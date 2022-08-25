@@ -259,11 +259,6 @@ namespace zz_no_inc
                 data__.at(i) = fill_value;
             return *this;
         }
-
-        // ~MatrixBase_() noexcept
-        // {
-        //     std::cout << "An instance of MatrixBase_ has been destroyed.\n";
-        // }
     };
 } /* linear_algebra */
 

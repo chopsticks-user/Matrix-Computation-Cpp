@@ -12,14 +12,30 @@ int main()
 
     try
     {
-        DynamicMatrix_<int> a(5, 5, 1);
+        DynamicMatrix_<float> a(3, 3);
         DynamicMatrix_<int> b(a);
 
-        a.fill_all_element_with_(56);
-        b.fill_all_element_with_(12);
+        int j = 1;
+        for (auto & i:b.data__)
+        {
+            i = j;
+            j++;
+        }
 
-        std::cout << a;
+        std::vector<int> v = {0, 0, 0};
+        std::vector<int> v1 = {6, 6, 6, 6, 6};
+
+        b.insert_col_at_(3, v)
+            .insert_col_at_(2, v)
+            .insert_row_at_(1, v1);
+
         std::cout << b;
+        
+        b.erase_row_at_(0);
+        b.erase_col_at_(4);
+
+        std::cout << b;
+        std::cout << b.data__.size() << '\n';
     }
     catch (const std::exception &e)
     {

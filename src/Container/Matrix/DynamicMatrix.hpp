@@ -3,6 +3,8 @@
 
 #include "MatrixBase.hpp"
 
+#include <queue>
+
 namespace zz_no_inc
 {
     template <typename ElementType>
@@ -16,6 +18,11 @@ namespace zz_no_inc
         DynamicMatrix_()
         {
             this->set_dimensions_();
+        }
+
+        ~DynamicMatrix_() noexcept
+        {
+            std::cout << "An instance of DynamicMatrix has been destroyed." << '\n';
         }
 
         /// Might throw (std::bad_alloc) if std::fill_n failed to allocate memory.
@@ -47,6 +54,95 @@ namespace zz_no_inc
         {
             this->move_initialize_(std::move(rhs_matrix));
         }
+
+        template <typename SeqContainer1D>
+        DynamicMatrix_ &insert_row_at_(SizeType row_index,
+                                       const SeqContainer1D &rhs_container)
+        {
+            SizeType rhs_size = utility::get_1d_seq_container_size(rhs_container);
+            if (rhs_size != this->n_cols__)
+                throw std::range_error("Row sizes mismatch.");
+            if (row_index > this->n_rows__ || row_index < 0)
+                throw std::range_error("Row index out of bounds.");
+
+            this->data__.insert(this->data__.begin() + row_index * this->n_cols__,
+                                std::begin(rhs_container),
+                                std::end(rhs_container));
+            this->n_rows__++;
+            return *this;
+        }
+
+        template <typename SeqContainer1D>
+        DynamicMatrix_ &insert_col_at_(SizeType col_index,
+                                       const SeqContainer1D &rhs_container)
+        {
+            SizeType rhs_size = utility::get_1d_seq_container_size(rhs_container); // might throw
+            if (rhs_size != this->n_rows__)
+                throw std::range_error("Column sizes mismatch.");
+            if (col_index > this->n_cols__ || col_index < 0)
+                throw std::range_error("Column index out of bounds.");
+
+            // could be in an invalid state if an exception is thrown
+            this->data__.resize(this->data__.size() + rhs_size);
+
+            SizeType new_n_cols = this->n_cols__ + 1;
+            std::queue<ElementType> q;
+            for (int i = col_index, j = 0; i < this->n_rows__ * new_n_cols; i++)
+            {
+                q.push(this->data__[i]);
+                if (i % new_n_cols == col_index)
+                    this->data__[i] = rhs_container[j++];
+                else
+                {
+                    this->data__[i] = q.front();
+                    q.pop();
+                }
+            } // might throw
+
+            this->n_cols__ = new_n_cols;
+            return *this;
+        };
+
+        DynamicMatrix_ &erase_row_at_(SizeType row_index)
+        {
+            if (row_index >= this->n_rows__ || row_index < 0)
+                throw std::range_error("Row index out of bounds.");
+            this->data__.erase(this->data__.begin() + this->n_cols__ * row_index,
+                               this->data__.begin() + this->n_cols__ * row_index + this->n_cols__);
+            this->n_rows__--;
+            return *this;
+        };
+
+        DynamicMatrix_ &erase_col_at_(SizeType col_index)
+        {
+            if (col_index >= this->n_cols__ || col_index < 0)
+                throw std::range_error("Column index out of bounds.");
+
+            SizeType new_n_cols = this->n_cols__ - 1;
+            for (SizeType i = col_index, j = 0; i < this->n_rows__ * (new_n_cols) + col_index; i++)
+            {
+                if (i == new_n_cols * j + col_index)
+                {
+                    std::cout << i << '\n';
+                    // break;
+                    j++;
+                }
+                this->data__[i] = this->data__[i + j];
+            }
+
+            this->data__.resize(this->n_rows__ * new_n_cols);
+            this->n_cols__ = new_n_cols;
+            return *this;
+        };
+
+        DynamicMatrix_ &resize_with_new_top_left_corner(){};
+
+        DynamicMatrix_ &clear()
+        {
+            this->set_dimensions_(0, 0);
+            this->data__.clear();
+            return *this;
+        };
     };
 }
 
