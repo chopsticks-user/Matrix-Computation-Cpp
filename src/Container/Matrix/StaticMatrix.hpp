@@ -28,7 +28,7 @@ namespace zz_no_inc
         }
 
         /// Might throw (std::bad_alloc) if std::fill_n failed to allocate memory.
-        explicit StaticMatrix_(ElementType fill_value)
+        explicit StaticMatrix_(const ElementType& fill_value)
         {
             this->fill_initialize_(fill_value);
         }

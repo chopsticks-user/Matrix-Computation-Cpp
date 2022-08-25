@@ -13,6 +13,8 @@ namespace linear_algebra
               utility::SizeType templ_col_size = 0>
     class Matrix
     {
+        typedef utility::SizeType SizeType;
+
         typedef zz_no_inc::StaticMatrix_<ElementType,
                                          templ_row_size,
                                          templ_col_size>
@@ -20,6 +22,18 @@ namespace linear_algebra
 
         typedef zz_no_inc::DynamicMatrix_<ElementType>
             DynamicMatrixType;
+
+        template <typename ReturnType>
+        using DynamicMatrixMethod = typename std::enable_if_t<
+            utility::is_declared_dynamic_matrix<templ_row_size,
+                                                templ_col_size>{},
+            ReturnType>;
+
+        template <typename ReturnType>
+        using StaticMatrixMethod = typename std::enable_if_t<
+            utility::is_declared_static_matrix<templ_row_size,
+                                               templ_col_size>{},
+            ReturnType>;
 
         typedef std::conditional_t<utility::check_if_dynamic_matrix<
                                        templ_row_size,
@@ -33,10 +47,19 @@ namespace linear_algebra
 
         Matrix() : matrix_ptr_(std::make_unique<MatrixType>()){};
 
-        ~Matrix()
+        ~Matrix() noexcept
         {
             std::cout << "An instance of Matrix has been destroyed.\n";
         }
+
+        /// check if ElementType is copy constructible.
+        explicit Matrix(const ElementType &fill_value)
+            : matrix_ptr_(std::make_unique<MatrixType>(fill_value)){};
+
+        explicit Matrix(SizeType n_rows,
+                        SizeType n_cols,
+                        const ElementType &fill_value = ElementType())
+            : matrix_ptr_(std::make_unique<MatrixType>(n_rows, n_cols, fill_value)){};
 
     private:
     };

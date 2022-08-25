@@ -212,4 +212,18 @@ namespace utility
             return container.size(); // might throw
     }
 
+    template <typename ElementType>
+    constexpr void check_element_requirements()
+    {
+        static_assert(std::is_default_constructible_v<ElementType>,
+                      "Element type must be default constructible.");
+        static_assert(std::is_copy_constructible_v<ElementType>,
+                      "Element type must be copy constructible.");
+        static_assert(std::is_move_constructible_v<ElementType>,
+                      "Element type must be move constructible.");
+        static_assert(std::is_nothrow_destructible_v<ElementType>,
+                      "Element type must be non-throwing destructible.");
+                      
+    }
+
 }

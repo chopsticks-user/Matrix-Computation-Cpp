@@ -82,6 +82,7 @@ namespace zz_no_inc
         StaticMatrixMethod<ReturnType>
         set_dimensions_()
         {
+            utility::check_element_requirements<ElementType>();
             n_rows__ = templ_row_size;
             n_cols__ = utility::verified_matrix_col_size<templ_row_size, templ_col_size>();
         }
@@ -90,6 +91,7 @@ namespace zz_no_inc
         DynamicMatrixMethod<ReturnType>
         set_dimensions_(SizeType row_size = 0, SizeType col_size = 0)
         {
+            utility::check_element_requirements<ElementType>();
             n_rows__ = row_size;
             n_cols__ = utility::verified_matrix_col_size(row_size, col_size);
         }
@@ -108,7 +110,7 @@ namespace zz_no_inc
         DynamicMatrixMethod<ReturnType>
         fill_initialize_(SizeType row_size,
                          SizeType col_size,
-                         ElementType fill_value = 0)
+                         ElementType fill_value = ElementType())
         {
             set_dimensions_(row_size, col_size);
             data__.resize(row_size * col_size, fill_value);
