@@ -129,18 +129,12 @@ namespace zz_no_inc
                                   templ_row_size, templ_col_size,
                                   rhs_row_size, rhs_col_size>(),
                               "Copy to a static matrix: Dimensions mismatch.");
+
             set_dimensions_();
-            try
-            {
-                if (rhs_matrix.n_rows__ != templ_row_size ||
-                    rhs_matrix.n_cols__ != utility::verified_matrix_col_size(templ_row_size, templ_col_size))
-                    throw std::runtime_error("Copy to a static matrix: Dimensions mismatch.");
-                std::copy(rhs_matrix.data__.begin(), rhs_matrix.data__.end(), data__.begin());
-            }
-            catch (const std::runtime_error &e)
-            {
-                std::cerr << e.what() << '\n';
-            }
+            if (rhs_matrix.n_rows__ != templ_row_size ||
+                rhs_matrix.n_cols__ != utility::verified_matrix_col_size(templ_row_size, templ_col_size))
+                throw std::runtime_error("Copy to a static matrix: Dimensions mismatch.");
+            std::copy(rhs_matrix.data__.begin(), rhs_matrix.data__.end(), data__.begin());
         }
 
         template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
@@ -171,18 +165,12 @@ namespace zz_no_inc
                                   templ_row_size, templ_col_size,
                                   rhs_row_size, rhs_col_size>(),
                               "Copy to a static matrix: Dimensions mismatch.");
+
             set_dimensions_();
-            try
-            {
-                if (rhs_matrix.n_rows__ != templ_row_size ||
-                    rhs_matrix.n_cols__ != utility::verified_matrix_col_size(templ_row_size, templ_col_size))
-                    throw std::runtime_error("Copy to a static matrix: Dimensions mismatch.");
-                std::move(rhs_matrix.data__.begin(), rhs_matrix.data__.end(), data__.begin());
-            }
-            catch (const std::runtime_error &e)
-            {
-                std::cerr << e.what() << '\n';
-            }
+            if (rhs_matrix.n_rows__ != templ_row_size ||
+                rhs_matrix.n_cols__ != utility::verified_matrix_col_size(templ_row_size, templ_col_size))
+                throw std::runtime_error("Copy to a static matrix: Dimensions mismatch.");
+            std::move(rhs_matrix.data__.begin(), rhs_matrix.data__.end(), data__.begin());
         }
 
         template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
@@ -234,6 +222,9 @@ namespace zz_no_inc
         DataContainerType clone_data_() const
         {
             DataContainerType cloned_data;
+            if constexpr (utility::is_declared_dynamic_matrix<templ_row_size,
+                                                              templ_col_size>{})
+                cloned_data.resize(n_rows__ * n_cols__);
             std::copy(data__.begin(), data__.end(), cloned_data.begin());
             return cloned_data;
         }

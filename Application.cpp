@@ -20,14 +20,20 @@ int main()
 
     try
     {
-        Matrix<int> m1(1, 2);
-        std::cout << m1.matrix_ptr_->data__.size() << '\n';
-        std::cout << *(m1.matrix_ptr_) << '\n';
-        std::cout << std::is_copy_constructible_v<std::shared_ptr<int>> << '\n';
+        Matrix<int> m1(4, 3, 1);
+        Matrix<int, 4, 3> m2 = std::move(m1);
+        m2.matrix_ptr_->fill_all_element_with_(2);
+        std::cout << *m1.matrix_ptr_ << '\n';
+        std::cout << *m2.matrix_ptr_ << '\n';
+        std::cout << m1.is_dynamic_matrix() << '\n';
+
+        constexpr auto a = m1.is_dynamic_matrix();
+
     }
     catch (const std::exception &e)
     {
-        std::cerr << e.what() << '\n';
+        std::cerr << "\nERROR: " << e.what() << "\n\n";
+        return 0;
     }
     return 0;
 }

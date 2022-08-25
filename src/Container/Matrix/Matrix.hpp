@@ -42,6 +42,11 @@ namespace linear_algebra
                                    StaticMatrixType>
             MatrixType;
 
+        // template <typename RhsElementType,
+        //           SizeType rhs_row_size,
+        //           SizeType rhs_col_size>
+        // friend class Matrix<RhsElementType, rhs_row_size, rhs_col_size>{};
+
     public:
         std::unique_ptr<MatrixType> matrix_ptr_;
 
@@ -52,7 +57,6 @@ namespace linear_algebra
             std::cout << "An instance of Matrix has been destroyed.\n";
         }
 
-        /// check if ElementType is copy constructible.
         explicit Matrix(const ElementType &fill_value)
             : matrix_ptr_(std::make_unique<MatrixType>(fill_value)){};
 
@@ -60,6 +64,90 @@ namespace linear_algebra
                         SizeType n_cols,
                         const ElementType &fill_value = ElementType())
             : matrix_ptr_(std::make_unique<MatrixType>(n_rows, n_cols, fill_value)){};
+
+        Matrix(Matrix &rhs_matrix)
+            : matrix_ptr_(std::move(rhs_matrix.clone_data())){};
+
+        
+        template <typename RhsElementType,
+                  SizeType rhs_row_size,
+                  SizeType rhs_col_size>
+        Matrix(Matrix<RhsElementType, rhs_row_size, rhs_col_size> &rhs_matrix)
+            : matrix_ptr_(std::make_unique<MatrixType>(
+                  std::move(*(rhs_matrix.clone_data())))){};
+
+        Matrix(Matrix &&rhs_matrix) = default;
+
+        /// use move it_begin, it_end
+        template <typename RhsElementType,
+                  SizeType rhs_row_size,
+                  SizeType rhs_col_size>
+        Matrix(Matrix<RhsElementType, rhs_row_size, rhs_col_size> &&rhs_matrix)
+            : matrix_ptr_(std::make_unique<MatrixType>(
+                  std::move(*(rhs_matrix.clone_data()))))
+        {
+            // if constexpr (utility::is_declared_static_matrix<templ_row_size, templ_col_size>{})
+            // {
+            //     if constexpr (utility::is_declared_static_matrix<rhs_row_size, rhs_col_size>{})
+            //         static_assert("Matrix dimensions mismatch.");
+            //     else if (templ_row_size != rhs_matrix.row_size() ||
+            //              templ_col_size != rhs_matrix.column_size())
+            //         throw std::range_error("Matrix dimensions mismatch.");
+            //     else
+            //     {
+            //         this->matrix_ptr_ = std::make_unique<MatrixType>();
+            //         std::move(rhs_matrix.begin(), rhs_matrix.end(), this->begin());
+            //     }
+            // }
+        }
+
+        constexpr bool is_dynamic_matrix()
+        {
+            return utility::is_declared_dynamic_matrix<templ_row_size,
+                                                       templ_col_size>{};
+        }
+
+        constexpr bool is_static_matrix()
+        {
+            return utility::is_declared_static_matrix<templ_row_size,
+                                                      templ_col_size>{};
+        }
+
+        // bool is_dynamic_matrix() const noexcept { return matrix_ptr_->is_dynamic_(); }
+
+        // bool is_static_matrix() const noexcept { return matrix_ptr_->is_static_(); }
+
+        SizeType row_size() const
+        {
+            return this->matrix_ptr_->get_row_size_();
+        }
+
+        SizeType column_size() const
+        {
+            return this->matrix_ptr_->get_col_size_();
+        }
+
+        auto clone_data() const
+        {
+            auto copy_ptr = std::make_unique<MatrixType>();
+            copy_ptr->data__ = std::move(this->matrix_ptr_->clone_data_());
+            copy_ptr->set_dimensions_(this->row_size(), this->column_size());
+            return std::move(copy_ptr);
+        }
+
+        auto clone() const
+        {
+            Matrix<ElementType, templ_row_size, templ_col_size> copy_matrix;
+            copy_matrix.matrix_ptr_ = this->clone_data();
+            return copy_matrix;
+            // auto copy_ptr = std::make_unique<MatrixType>();
+            // copy_ptr->data__ = std::move(this->matrix_ptr_->clone_data_());
+            // copy_ptr->set_dimensions_(this->row_size(), this->column_size());
+        }
+
+        auto begin() const noexcept { return this->matrix_ptr_->data__.begin(); };
+
+        auto end() const noexcept { return this->matrix_ptr_->data__.end(); };
 
     private:
     };
