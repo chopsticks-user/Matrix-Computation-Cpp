@@ -8,12 +8,13 @@
 
 namespace linear_algebra
 {
+    /// Accept negative indices
     template <typename ElementType,
-              utility::SizeType templ_row_size = 0,
-              utility::SizeType templ_col_size = 0>
+              long templ_row_size = 0,
+              long templ_col_size = 0>
     class Matrix
     {
-        typedef utility::SizeType SizeType;
+        typedef long SizeType;
 
         typedef zz_no_inc::StaticMatrix_<ElementType,
                                          templ_row_size,
@@ -48,8 +49,6 @@ namespace linear_algebra
         // friend class Matrix<RhsElementType, rhs_row_size, rhs_col_size>{};
 
     public:
-        std::unique_ptr<MatrixType> matrix_ptr_;
-
         Matrix() : matrix_ptr_(std::make_unique<MatrixType>()){};
 
         ~Matrix() noexcept
@@ -68,7 +67,6 @@ namespace linear_algebra
         Matrix(Matrix &rhs_matrix)
             : matrix_ptr_(std::move(rhs_matrix.clone_data())){};
 
-        
         template <typename RhsElementType,
                   SizeType rhs_row_size,
                   SizeType rhs_col_size>
@@ -101,6 +99,51 @@ namespace linear_algebra
             // }
         }
 
+        Matrix &operator=(Matrix &rhs_matrix)
+        {
+            this->matrix_ptr_ = (std::move(rhs_matrix.clone_data()));
+            return *this;
+        }
+
+        template <typename RhsElementType,
+                  SizeType rhs_row_size,
+                  SizeType rhs_col_size>
+        Matrix &operator=(Matrix<RhsElementType, rhs_row_size, rhs_col_size> &rhs_matrix)
+        {
+            this->matrix_ptr_(std::make_unique<MatrixType>(
+                std::move(*(rhs_matrix.clone_data()))));
+            return *this;
+        }
+
+        Matrix &operator=(Matrix &&rhs_matrix) = default;
+
+        /// use move it_begin, it_end
+        template <typename RhsElementType,
+                  SizeType rhs_row_size,
+                  SizeType rhs_col_size>
+        Matrix &operator=(Matrix<RhsElementType, rhs_row_size, rhs_col_size> &&rhs_matrix)
+        {
+            this->matrix_ptr_ = std::make_unique<MatrixType>(
+                std::move(*(rhs_matrix.clone_data())));
+            return *this;
+        }
+
+        friend std::ostream &operator<<(std::ostream &os, const Matrix &matrix)
+        {
+            os << *(matrix.matrix_ptr_);
+            return os;
+        }
+
+        ElementType &operator()(SizeType row_index, SizeType col_index)
+        {
+            return (*(this->matrix_ptr_))(row_index, col_index);
+        }
+
+        const ElementType &operator()(SizeType row_index, SizeType col_index) const
+        {
+            return (*(this->matrix_ptr_))(row_index, col_index);
+        }
+
         constexpr bool is_dynamic_matrix()
         {
             return utility::is_declared_dynamic_matrix<templ_row_size,
@@ -112,10 +155,6 @@ namespace linear_algebra
             return utility::is_declared_static_matrix<templ_row_size,
                                                       templ_col_size>{};
         }
-
-        // bool is_dynamic_matrix() const noexcept { return matrix_ptr_->is_dynamic_(); }
-
-        // bool is_static_matrix() const noexcept { return matrix_ptr_->is_static_(); }
 
         SizeType row_size() const
         {
@@ -131,7 +170,9 @@ namespace linear_algebra
         {
             auto copy_ptr = std::make_unique<MatrixType>();
             copy_ptr->data__ = std::move(this->matrix_ptr_->clone_data_());
-            copy_ptr->set_dimensions_(this->row_size(), this->column_size());
+            if constexpr (utility::is_declared_dynamic_matrix<templ_row_size,
+                                                              templ_col_size>{})
+                copy_ptr->set_dimensions_(this->row_size(), this->column_size());
             return std::move(copy_ptr);
         }
 
@@ -140,16 +181,63 @@ namespace linear_algebra
             Matrix<ElementType, templ_row_size, templ_col_size> copy_matrix;
             copy_matrix.matrix_ptr_ = this->clone_data();
             return copy_matrix;
-            // auto copy_ptr = std::make_unique<MatrixType>();
-            // copy_ptr->data__ = std::move(this->matrix_ptr_->clone_data_());
-            // copy_ptr->set_dimensions_(this->row_size(), this->column_size());
         }
 
         auto begin() const noexcept { return this->matrix_ptr_->data__.begin(); };
 
         auto end() const noexcept { return this->matrix_ptr_->data__.end(); };
 
+        auto rbegin() const noexcept { return this->matrix_ptr_->data__.rbegin(); };
+
+        auto rend() const noexcept { return this->matrix_ptr_->data__.rend(); };
+
+        // auto cbegin() const noexcept { return this->matrix_ptr_->data__.cbegin(); };
+
+        // auto cend() const noexcept { return this->matrix_ptr_->data__.cend(); };
+
+        // auto crbegin() const noexcept { return this->matrix_ptr_->data__.crbegin(); };
+
+        // auto crend() const noexcept { return this->matrix_ptr_->data__.crend(); };
+
+        Matrix &fill(const ElementType &fill_value = ElementType())
+        {
+            this->matrix_ptr_->fill_all_element_with_(fill_value);
+            return *this;
+        }
+
+        Matrix &fill_row(SizeType row_index, const ElementType &fill_value)
+        {
+            row_index = this->validate_negative_row_index_(row_index);
+            this->matrix_ptr_->fill_value_to_row_(row_index, fill_value);
+            return *this;
+        }
+
+        Matrix &fill_column(SizeType col_index, const ElementType &fill_value)
+        {
+            col_index = this->validate_negative_col_index_(col_index);
+            this->matrix_ptr_->fill_value_to_col_(col_index, fill_value);
+            return *this;
+        }
+
+        template <typename SeqContainer1D, typename ReturnType = Matrix &>
+        StaticMatrixMethod<ReturnType>
+        copy_to_row(SizeType row_index, const SeqContainer1D &rhs_seq_container)
+        {
+            return *this;
+        }
+
     private:
+        std::unique_ptr<MatrixType> matrix_ptr_;
+
+        SizeType validate_negative_row_index_(SizeType row_index) const noexcept
+        {
+            return row_index < 0 ? this->row_size() + row_index : row_index;
+        }
+
+        SizeType validate_negative_col_index_(SizeType col_index) const noexcept
+        {
+            return col_index < 0 ? this->column_size() + col_index : col_index;
+        }
     };
 }
 

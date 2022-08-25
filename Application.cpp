@@ -21,14 +21,16 @@ int main()
     try
     {
         Matrix<int> m1(4, 3, 1);
-        Matrix<int, 4, 3> m2 = std::move(m1);
-        m2.matrix_ptr_->fill_all_element_with_(2);
-        std::cout << *m1.matrix_ptr_ << '\n';
-        std::cout << *m2.matrix_ptr_ << '\n';
-        std::cout << m1.is_dynamic_matrix() << '\n';
+        Matrix<int> m2 = m1;
 
-        constexpr auto a = m1.is_dynamic_matrix();
+        Matrix<int, 4, 3> m3 = std::move(m2.fill_column(-1, 2).fill_row(-1, 2).fill(0));
 
+        m3.fill(3);
+
+        // m2 = m3.copy_to_row();
+
+        std::cout << m2 << '\n';
+        std::cout << m3 << '\n';
     }
     catch (const std::exception &e)
     {
