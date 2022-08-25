@@ -122,11 +122,7 @@ namespace zz_no_inc
             for (SizeType i = col_index, j = 0; i < this->n_rows__ * (new_n_cols) + col_index; i++)
             {
                 if (i == new_n_cols * j + col_index)
-                {
-                    std::cout << i << '\n';
-                    // break;
                     j++;
-                }
                 this->data__[i] = this->data__[i + j];
             }
 
@@ -135,9 +131,20 @@ namespace zz_no_inc
             return *this;
         };
 
-        DynamicMatrix_ &resize_with_new_top_left_corner(){};
+        // fill value = default value of ElementType, check if ElementType is default constructible
+        DynamicMatrix_ &resize_and_fill_default_(SizeType new_n_rows,
+                                                SizeType new_n_cols,
+                                                ElementType fill_value = 0)
+        {
+            this->set_dimensions_(new_n_rows, new_n_cols);
+            this->data__.resize(new_n_rows * new_n_cols);
+            this->fill_all_element_with_(fill_value);
+            return *this;
+        }
 
-        DynamicMatrix_ &clear()
+        DynamicMatrix_ &resize_with_new_top_left_corner_(){};
+
+        DynamicMatrix_ &clear_data_()
         {
             this->set_dimensions_(0, 0);
             this->data__.clear();

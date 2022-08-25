@@ -22,20 +22,22 @@ int main()
             j++;
         }
 
-        std::vector<int> v = {0, 0, 0};
+        std::vector<int> v = {1, 1, 1};
         std::vector<int> v1 = {6, 6, 6, 6, 6};
+        
+        StaticMatrix_<int, 3, 40> c;
+        c.copy_data_to_col(2, v);
 
         b.insert_col_at_(3, v)
             .insert_col_at_(2, v)
-            .insert_row_at_(1, v1);
+            .insert_row_at_(1, v1)
+            .erase_row_at_(0)
+            .erase_col_at_(4);
 
-        std::cout << b;
-        
-        b.erase_row_at_(0);
-        b.erase_col_at_(4);
+    
 
-        std::cout << b;
-        std::cout << b.data__.size() << '\n';
+        std::cout << c;
+        std::cout << c.data__.size() << '\n';
     }
     catch (const std::exception &e)
     {

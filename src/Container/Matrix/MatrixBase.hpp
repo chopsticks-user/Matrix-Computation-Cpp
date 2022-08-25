@@ -93,6 +93,7 @@ namespace zz_no_inc
             n_cols__ = utility::verified_matrix_col_size(row_size, col_size);
         }
 
+        // fill value = default value of ElementType, check if ElementType is default constructible
         template <typename ReturnType = void>
         StaticMatrixMethod<ReturnType>
         fill_initialize_(ElementType fill_value = 0)
@@ -101,6 +102,7 @@ namespace zz_no_inc
             data__.fill(fill_value);
         }
 
+        // fill value = default value of ElementType, check if ElementType is default constructible
         template <typename ReturnType = void>
         DynamicMatrixMethod<ReturnType>
         fill_initialize_(SizeType row_size,
