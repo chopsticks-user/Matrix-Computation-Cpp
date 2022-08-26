@@ -2,6 +2,7 @@
 #define LINEAR_ALGEBRA_COMPUTATION_HPP
 
 #include "../Utility/Utility.hpp"
+#include <math.h>
 
 namespace linear_algebra
 {

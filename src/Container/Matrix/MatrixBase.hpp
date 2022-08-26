@@ -27,13 +27,7 @@ namespace zz_no_inc
     {
         typedef utility::SizeType SizeType;
 
-        typedef std::vector<ElementType> DynamicContainerType;
-
-        typedef std::array<ElementType,
-                           utility::verified_matrix_data_container_size<
-                               templ_row_size,
-                               templ_col_size>()>
-            StaticContainerType;
+        typedef std::vector<ElementType> DataContainerType;
 
         template <typename ReturnType>
         using DynamicMatrixMethod = typename std::enable_if_t<
@@ -46,13 +40,6 @@ namespace zz_no_inc
             utility::is_declared_static_matrix<templ_row_size,
                                                templ_col_size>{},
             ReturnType>;
-
-        typedef std::conditional_t<utility::check_if_dynamic_matrix<
-                                       templ_row_size,
-                                       templ_col_size>(),
-                                   DynamicContainerType,
-                                   StaticContainerType>
-            DataContainerType;
 
         /**
          * If both the size of column and row are either unspecified or equal to zero, data is stored
@@ -99,10 +86,11 @@ namespace zz_no_inc
         // fill value = default value of ElementType, check if ElementType is default constructible
         template <typename ReturnType = void>
         StaticMatrixMethod<ReturnType>
-        fill_initialize_(ElementType fill_value = 0)
+        fill_initialize_(ElementType fill_value = ElementType())
         {
             set_dimensions_();
-            data__.fill(fill_value);
+            data__.resize(templ_row_size * templ_col_size);
+            data__.shrink_to_fit();
         }
 
         // fill value = default value of ElementType, check if ElementType is default constructible
@@ -134,7 +122,8 @@ namespace zz_no_inc
             if (rhs_matrix.n_rows__ != templ_row_size ||
                 rhs_matrix.n_cols__ != utility::verified_matrix_col_size(templ_row_size, templ_col_size))
                 throw std::runtime_error("Copy to a static matrix: Dimensions mismatch.");
-            std::copy(rhs_matrix.data__.begin(), rhs_matrix.data__.end(), data__.begin());
+            data__ = rhs_matrix.data__;
+            data__.shrink_to_fit();
         }
 
         template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
@@ -146,10 +135,10 @@ namespace zz_no_inc
                              &rhs_matrix)
         {
             if constexpr (rhs_row_size != 0)
-                fill_initialize_(rhs_row_size, rhs_col_size);
+                set_dimensions_(rhs_row_size, rhs_col_size);
             else
-                fill_initialize_(rhs_matrix.n_rows__, rhs_matrix.n_cols__);
-            std::copy(rhs_matrix.data__.begin(), rhs_matrix.data__.end(), data__.begin());
+                set_dimensions_(rhs_matrix.n_rows__, rhs_matrix.n_cols__);
+            data__ = rhs_matrix.data__;
         }
 
         template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
@@ -170,7 +159,7 @@ namespace zz_no_inc
             if (rhs_matrix.n_rows__ != templ_row_size ||
                 rhs_matrix.n_cols__ != utility::verified_matrix_col_size(templ_row_size, templ_col_size))
                 throw std::runtime_error("Copy to a static matrix: Dimensions mismatch.");
-            std::move(rhs_matrix.data__.begin(), rhs_matrix.data__.end(), data__.begin());
+            data__ = std::move(rhs_matrix.data__);
         }
 
         template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
@@ -182,10 +171,12 @@ namespace zz_no_inc
                              &&rhs_matrix)
         {
             if constexpr (rhs_row_size != 0)
-                fill_initialize_(rhs_row_size, rhs_col_size);
+                set_dimensions_(rhs_row_size, rhs_col_size);
+            // fill_initialize_(rhs_row_size, rhs_col_size);
             else
-                fill_initialize_(rhs_matrix.n_rows__, rhs_matrix.n_cols__);
-            std::move(rhs_matrix.data__.begin(), rhs_matrix.data__.end(), data__.begin());
+                set_dimensions_(rhs_matrix.n_rows__, rhs_matrix.n_cols__);
+            // fill_initialize_(rhs_matrix.n_rows__, rhs_matrix.n_cols__);
+            data__ = std::move(rhs_matrix.data__);
         }
 
         /// Safety check is handled by either std::array or std::vector.
@@ -258,7 +249,7 @@ namespace zz_no_inc
 
         template <typename SeqContainer1D>
         MatrixBase_ &copy_data_to_row_(SizeType row_index,
-                                        const SeqContainer1D &rhs_container)
+                                       const SeqContainer1D &rhs_container)
         {
             SizeType rhs_size = utility::get_1d_seq_container_size(rhs_container);
             if (rhs_size != n_cols__)
@@ -274,7 +265,7 @@ namespace zz_no_inc
 
         template <typename SeqContainer1D>
         MatrixBase_ &copy_data_to_col_(SizeType col_index,
-                                        const SeqContainer1D &rhs_container)
+                                       const SeqContainer1D &rhs_container)
         {
             SizeType rhs_size = utility::get_1d_seq_container_size(rhs_container);
             if (rhs_size != n_rows__)

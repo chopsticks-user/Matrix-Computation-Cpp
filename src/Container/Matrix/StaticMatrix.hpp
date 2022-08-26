@@ -19,7 +19,7 @@ namespace zz_no_inc
     public:
         StaticMatrix_()
         {
-            this->set_dimensions_();
+            this->fill_initialize_();
         }
 
         ~StaticMatrix_() noexcept
@@ -40,14 +40,20 @@ namespace zz_no_inc
             this->copy_initialize_(rhs_matrix);
         };
 
-        template <typename RhsMatrixType>
-        StaticMatrix_(const RhsMatrixType &rhs_matrix)
+        template <typename RhsMatrixType,
+                  SizeType row_size,
+                  SizeType col_size>
+        StaticMatrix_(const MatrixBase_<RhsMatrixType, row_size, col_size>
+                          &rhs_matrix)
         {
             this->copy_initialize_(rhs_matrix);
         };
 
-        template <typename RhsMatrixType>
-        StaticMatrix_(RhsMatrixType &&rhs_matrix)
+        template <typename RhsMatrixType,
+                  SizeType row_size,
+                  SizeType col_size>
+        StaticMatrix_(MatrixBase_<RhsMatrixType, row_size, col_size>
+                          &&rhs_matrix)
         {
             this->move_initialize_(std::move(rhs_matrix));
         };

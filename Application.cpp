@@ -5,8 +5,10 @@
 #include <array>
 #include <typeinfo>
 #include <functional>
+#include <string_view>
 
 using namespace linear_algebra;
+using namespace zz_no_inc;
 
 class A
 {
@@ -14,42 +16,49 @@ public:
     int aa;
     int ac;
     int ad;
-    A() { aa = 0; };
+    A() { aa = 2; };
     A(const A &a) = delete;
     ~A() = default;
 };
 
+template <typename T>
+constexpr bool test(T &&x)
+{
+    std::cout << std::addressof(x) << '\n';
+    if constexpr (std::is_lvalue_reference_v<T>)
+        return true;
+    else
+        return false;
+}
+
 int main()
 {
+    // 10000 x 10000
+    // dynamic: same-type-cctor: <m, 227ms> vs <v, 156ms>
+    // dynamic: same-type-mctor: <m, 109ms> vs <v, 103ms>, default
+    // dynamic: same-type-cp=:   <m, 227ms> vs <v, 156ms>
+    // dynamic: same-type-mv=:   <m, 106ms> vs <v, 101ms>, default
 
     try
     {
-        auto t1 = std::make_unique<utility::Timer>();
+        Matrix<int> m1(10000, 10000, 69);
+        Matrix<int, 10000, 10000> m2;
+        auto *t1 = new utility::Timer;
+        m2 = std::move(m1);
+        std::cout << m2(10, 10) << '\n';
+        // auto md = m2.data();
+        delete t1;
 
-        // Matrix<long long> m1(16, 128);
-        // Matrix<long long, 128, 128> m2;
-        // Matrix<long long, 128, 3> m3;
+        std::vector<int> v1(100000000, 69);
+        std::vector<int> v2;
+        auto *t2 = new utility::Timer;
+        v2 = std::move(v1);
+        delete t2;
 
-        // for (auto &i : m1)
-        //     i = utility::rand(1, 10);
-
-        // for (auto &i : m2)
-        //     i = utility::rand(1, 10);
-
-        // for (auto &i : m3)
-        //     i = utility::rand(1, 10);
-
-        // auto m4 = m1 * m2 * m2 * m3;
-
-        // std::cout << m4 << '\n';
-        // std::cout << m4.sub(1, 1) << '\n';
-
-        Matrix<int> m5(3, 4, 5);
-
-        std::cout << m5.fill_row(-1, 0) << '\n';
-        std::cout << m5.fill_row(0, 9) << '\n';
-        std::cout << m5.row_swap(0, -1) << '\n';
-        
+        // auto p = std::make_unique<int>();
+        // *p = 5;
+        // int a = *p;
+        // std::cout << *p << '\n';
     }
     catch (const std::exception &e)
     {

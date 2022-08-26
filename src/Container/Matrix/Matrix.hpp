@@ -9,7 +9,7 @@
 
 namespace linear_algebra
 {
-    /// Accept negative indices
+    /// Accept negative indices, static matrices are currently not available
     template <typename ElementType = float,
               long templ_row_size = 0,
               long templ_col_size = 0>
@@ -45,6 +45,16 @@ namespace linear_algebra
             MatrixType;
 
     public:
+        const auto &data() const
+        {
+            return *(this->matrix_ptr_);
+        }
+
+        auto &data()
+        {
+            return *(this->matrix_ptr_);
+        }
+
         Matrix() : matrix_ptr_(std::make_unique<MatrixType>()){};
 
         ~Matrix() noexcept
@@ -63,54 +73,53 @@ namespace linear_algebra
             : matrix_ptr_(std::make_unique<MatrixType>(n_rows, n_cols, fill_value)){};
 
         Matrix(Matrix &rhs_matrix)
-            : matrix_ptr_(std::move(rhs_matrix.clone_data())){};
+            : matrix_ptr_(std::make_unique<MatrixType>(rhs_matrix.data())){};
 
         template <typename RhsElementType,
                   SizeType rhs_row_size,
                   SizeType rhs_col_size>
-        Matrix(Matrix<RhsElementType, rhs_row_size, rhs_col_size> &rhs_matrix)
-            : matrix_ptr_(std::make_unique<MatrixType>(
-                  std::move(*(rhs_matrix.clone_data())))){};
+        Matrix(Matrix<RhsElementType, rhs_row_size, rhs_col_size>
+                   &rhs_matrix)
+            : matrix_ptr_(std::make_unique<MatrixType>(rhs_matrix.data())){};
 
         Matrix(Matrix &&rhs_matrix) = default;
 
-        /// 1 copy
-        /// use move it_begin, it_end
         template <typename RhsElementType,
                   SizeType rhs_row_size,
                   SizeType rhs_col_size>
-        Matrix(Matrix<RhsElementType, rhs_row_size, rhs_col_size> &&rhs_matrix)
+        Matrix(Matrix<RhsElementType, rhs_row_size, rhs_col_size>
+                   &&rhs_matrix)
             : matrix_ptr_(std::make_unique<MatrixType>(
-                  std::move(*(rhs_matrix.clone_data())))){};
+                  std::move(rhs_matrix.data()))){};
 
         Matrix &operator=(Matrix &rhs_matrix)
         {
-            this->matrix_ptr_ = (std::move(rhs_matrix.clone_data()));
+            this->matrix_ptr_ = std::make_unique<MatrixType>(
+                std::move(rhs_matrix.data()));
             return *this;
         }
 
-        /// 2 copy
         template <typename RhsElementType,
                   SizeType rhs_row_size,
                   SizeType rhs_col_size>
-        Matrix &operator=(Matrix<RhsElementType, rhs_row_size, rhs_col_size> &rhs_matrix)
+        Matrix &operator=(Matrix<RhsElementType, rhs_row_size, rhs_col_size>
+                              &rhs_matrix)
         {
             this->matrix_ptr_ = std::make_unique<MatrixType>(
-                std::move(*(rhs_matrix.clone_data())));
+                rhs_matrix.data());
             return *this;
         }
 
         Matrix &operator=(Matrix &&rhs_matrix) = default;
 
-        /// 2 copy
-        /// use move it_begin, it_end
         template <typename RhsElementType,
                   SizeType rhs_row_size,
                   SizeType rhs_col_size>
-        Matrix &operator=(Matrix<RhsElementType, rhs_row_size, rhs_col_size> &&rhs_matrix)
+        Matrix &operator=(Matrix<RhsElementType, rhs_row_size, rhs_col_size>
+                              &&rhs_matrix)
         {
             this->matrix_ptr_ = std::make_unique<MatrixType>(
-                std::move(*(rhs_matrix.clone_data())));
+                std::move(rhs_matrix.data()));
             return *this;
         }
 

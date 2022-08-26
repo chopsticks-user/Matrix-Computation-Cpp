@@ -40,19 +40,22 @@ namespace zz_no_inc
             this->copy_initialize_(rhs_matrix);
         };
 
-        template <typename RhsMatrixType>
-        DynamicMatrix_(const RhsMatrixType &rhs_matrix)
+        template <typename RhsMatrixType,
+                  SizeType row_size,
+                  SizeType col_size>
+        DynamicMatrix_(const MatrixBase_<RhsMatrixType, row_size, col_size>
+                           &rhs_matrix)
         {
             this->copy_initialize_(rhs_matrix);
-        };
+        }
 
-        template <typename RhsMatrixType>
-        DynamicMatrix_(RhsMatrixType &&rhs_matrix)
-        {
-            this->move_initialize_(std::move(rhs_matrix));
-        };
+        DynamicMatrix_(DynamicMatrix_ &&rhs_matrix) = default;
 
-        DynamicMatrix_(DynamicMatrix_ &&rhs_matrix)
+        template <typename RhsMatrixType,
+                  SizeType row_size,
+                  SizeType col_size>
+        DynamicMatrix_(MatrixBase_<RhsMatrixType, row_size, col_size>
+                           &&rhs_matrix)
         {
             this->move_initialize_(std::move(rhs_matrix));
         }
