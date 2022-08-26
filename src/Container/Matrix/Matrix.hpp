@@ -3,13 +3,14 @@
 
 #include "DynamicMatrix.hpp"
 #include "StaticMatrix.hpp"
+#include "Row.hpp"
 
 #include <memory>
 
 namespace linear_algebra
 {
     /// Accept negative indices
-    template <typename ElementType,
+    template <typename ElementType = float,
               long templ_row_size = 0,
               long templ_col_size = 0>
     class Matrix
@@ -359,6 +360,11 @@ namespace linear_algebra
             return result;
         }
 
+        bool is_singular() const
+        {
+            return false;
+        }
+
         ElementType det()
         {
             static_assert(std::is_arithmetic_v<ElementType>,
@@ -366,7 +372,37 @@ namespace linear_algebra
 
             utility::expect(this->is_square_matrix() == true,
                             std::runtime_error("Taking power of a non-square matrix is not allowed."));
+
             return ElementType();
+        }
+
+        Matrix identity()
+        {
+            /// exception: std::complex
+            static_assert(std::is_arithmetic_v<ElementType>,
+                          "ElementType must be of any arithmetic type.");
+
+            utility::expect(this->is_square_matrix() == true,
+                            std::runtime_error("Taking power of a non-square matrix is not allowed."));
+
+            SizeType row_size = this->row_size();
+            Matrix<ElementType> identity_matrix(row_size, row_size);
+            while (row_size--)
+                identity_matrix(row_size, row_size) = 1;
+            return identity_matrix;
+        }
+
+        Matrix inverse()
+        {
+            return *this;
+        }
+
+        Matrix sub(SizeType rm_row_index, SizeType rm_col_index)
+        {
+            Matrix<ElementType> sub_matrix(std::move(this->clone()));
+            sub_matrix.remove_row(rm_row_index);
+            sub_matrix.remove_column(rm_col_index);
+            return sub_matrix;
         }
 
         /// For testing purpose only. Actual algorithm does not repeatedly perform multiplication.
@@ -379,11 +415,14 @@ namespace linear_algebra
             utility::expect(this->is_square_matrix() == true,
                             std::runtime_error("Taking power of a non-square matrix is not allowed."));
 
-            // if (scalar == 0)
-            //     return this->identity();
+            if (scalar == 0)
+                return this->identity();
 
             if (scalar == 1)
                 return *this;
+
+            if (scalar == -1)
+                return this->inverse();
 
             const SizeType row_size = this->row_size();
             const SizeType col_size = this->column_size();
@@ -407,21 +446,72 @@ namespace linear_algebra
             return result;
         }
 
-        // Matrix &operator/(const Matrix &rhs_matrix)
-        // {
-        //     const SizeType row_size = rhs_matrix.row_size();
-        //     const SizeType col_size = rhs_matrix.column_size();
+        template <typename ScalarType>
+        Matrix &row_addition(SizeType row_index, ScalarType value)
+        {
+            static_assert(std::is_arithmetic_v<ScalarType>,
+                          "Scalar must be of any arithmetic type.");
 
-        //     utility::expect(
-        //         this->is_multipliable(rhs_matrix.row_size(), rhs_matrix.column_size()),
-        //         std::runtime_error("Dimensions mismatch when performing matrix division."));
+            row_index = this->validate_negative_row_index_(row_index);
 
-        //     return *this;
-        // }
+            SizeType row_size = this->row_size();
+            SizeType col_size = this->column_size();
+
+            utility::expect(row_index < row_size && row_index >= 0,
+                            std::range_error("Row addition: Row index out of bounds."));
+
+            for (SizeType i = 0; i < col_size; i++)
+                *(this->begin() + row_index * col_size + i) += value;
+
+            return *this;
+        }
+
+        template <typename ScalarType>
+        Matrix &row_multiplication(SizeType row_index, ScalarType value)
+        {
+            static_assert(std::is_arithmetic_v<ScalarType>,
+                          "Scalar must be of any arithmetic type.");
+
+            row_index = this->validate_negative_row_index_(row_index);
+
+            SizeType row_size = this->row_size();
+            SizeType col_size = this->column_size();
+
+            utility::expect(row_index < row_size && row_index >= 0,
+                            std::range_error("Row addition: Row index out of bounds."));
+
+            for (SizeType i = 0; i < col_size; i++)
+                *(this->begin() + row_index * col_size + i) *= value;
+
+            return *this;
+        }
+
+        Matrix &row_swap(SizeType row_index1, SizeType row_index2)
+        {
+
+            row_index1 = this->validate_negative_row_index_(row_index1);
+            row_index2 = this->validate_negative_row_index_(row_index2);
+
+            SizeType row_size = this->row_size();
+            SizeType col_size = this->column_size();
+
+            utility::expect(row_index1 < row_size && row_index1 >= 0,
+                            std::range_error("Row addition: Row index out of bounds."));
+
+            utility::expect(row_index2 < row_size && row_index2 >= 0,
+                            std::range_error("Row addition: Row index out of bounds."));
+
+            for (SizeType i = 0; i < col_size; i++)
+                std::swap(*(this->begin() + row_index1 * col_size + i),
+                          *(this->begin() + row_index2 * col_size + i));
+
+            return *this;
+        }
 
     private:
         std::unique_ptr<MatrixType> matrix_ptr_;
 
+        /// Need to check if the returned row_index is still less than 0.
         SizeType validate_negative_row_index_(SizeType row_index) const noexcept
         {
             return row_index < 0 ? this->row_size() + row_index : row_index;

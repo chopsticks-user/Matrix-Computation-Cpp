@@ -41,17 +41,15 @@ int main()
 
         // auto m4 = m1 * m2 * m2 * m3;
 
-        // std::cout << m1 << '\n';
-        // std::cout << m2 << '\n';
-        // std::cout << m3 << '\n';
         // std::cout << m4 << '\n';
+        // std::cout << m4.sub(1, 1) << '\n';
 
-        Matrix<int> m5(3, 3);
-        for (auto &i : m5)
-            i = utility::rand(1, 10);
-        std::cout << m5 << '\n';
-        std::cout << m5.pow(3) << '\n';
-        std::cout << m5.transpose() << '\n';
+        Matrix<int> m5(3, 4, 5);
+
+        std::cout << m5.fill_row(-1, 0) << '\n';
+        std::cout << m5.fill_row(0, 9) << '\n';
+        std::cout << m5.row_swap(0, -1) << '\n';
+        
     }
     catch (const std::exception &e)
     {

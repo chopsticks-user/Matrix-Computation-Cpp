@@ -287,6 +287,6 @@ namespace zz_no_inc
             return *this;
         }
     };
-} /* linear_algebra */
+} /* zz_no_inc */
 
 #endif /* LIN_ALG_CONTAINER_BASEMATRIX_HPP */
