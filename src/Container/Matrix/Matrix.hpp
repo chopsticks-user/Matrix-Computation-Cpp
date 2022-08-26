@@ -143,6 +143,11 @@ namespace linear_algebra
                                                       templ_col_size>{};
         }
 
+        bool is_square_matrix() const
+        {
+            return this->row_size() == this->column_size();
+        }
+
         SizeType row_size() const
         {
             return this->matrix_ptr_->get_row_size_();
@@ -275,41 +280,144 @@ namespace linear_algebra
         }
         ///------------------------------------Math-related methods-------------------------------------------------
 
-        Matrix &operator+(const Matrix &rhs_matrix)
+        /// ElementType must have a defined operator+
+        template <typename RhsMatrixType>
+        Matrix operator+(const RhsMatrixType &rhs_matrix)
         {
+            const SizeType rhs_row_size = rhs_matrix.row_size();
+            const SizeType rhs_col_size = rhs_matrix.column_size();
+
             utility::expect(
-                this->is_summable(rhs_matrix.row_size(), rhs_matrix.column_size()),
+                this->is_summable(rhs_row_size, rhs_col_size),
                 std::runtime_error("Dimensions mismatch when performing matrix addition."));
 
-            return *this;
+            Matrix<ElementType> result(rhs_row_size, rhs_col_size);
+            for (SizeType i = 0; i < rhs_row_size; i++)
+                for (SizeType j = 0; j < rhs_col_size; j++)
+                    result(i, j) = (*this)(i, j) + rhs_matrix(i, j);
+            return result;
         }
 
-        Matrix &operator-(const Matrix &rhs_matrix)
+        /// ElementType must have a defined operator-
+        template <typename RhsMatrixType>
+        Matrix operator-(const RhsMatrixType &rhs_matrix)
         {
+            const SizeType rhs_row_size = rhs_matrix.row_size();
+            const SizeType rhs_col_size = rhs_matrix.column_size();
+
             utility::expect(
-                this->is_summable(rhs_matrix.row_size(), rhs_matrix.column_size()),
+                this->is_summable(rhs_row_size, rhs_col_size),
                 std::runtime_error("Dimensions mismatch when performing matrix subtraction."));
 
-            return *this;
+            Matrix<ElementType> result(rhs_row_size, rhs_col_size);
+            for (SizeType i = 0; i < rhs_row_size; i++)
+                for (SizeType j = 0; j < rhs_col_size; j++)
+                    result(i, j) = (*this)(i, j) - rhs_matrix(i, j);
+            return result;
         }
 
-        Matrix &operator*(const Matrix &rhs_matrix)
+        /// ElementType must have a defined operator*
+        template <typename RhsMatrixType>
+        Matrix operator*(const RhsMatrixType &rhs_matrix)
         {
+            const SizeType row_size = this->row_size();
+            const SizeType col_size = this->column_size();
+            const SizeType rhs_row_size = rhs_matrix.row_size();
+            const SizeType rhs_col_size = rhs_matrix.column_size();
+
             utility::expect(
-                this->is_multipliable(rhs_matrix.row_size(), rhs_matrix.column_size()),
+                this->is_multipliable(rhs_row_size),
                 std::runtime_error("Dimensions mismatch when performing matrix multiplication."));
 
-            return *this;
+            Matrix<ElementType> result(row_size, rhs_col_size);
+            for (SizeType i = 0; i < row_size; i++)
+                for (SizeType j = 0; j < rhs_col_size; j++)
+                    for (SizeType k = 0; k < rhs_row_size; k++)
+                        result(i, j) += (*this)(i, k) * rhs_matrix(k, j);
+            return result;
         }
 
-        Matrix &operator/(const Matrix &rhs_matrix)
+        /// ElementType must have a defined operator*
+        Matrix operator*(const ElementType &scalar)
         {
-            utility::expect(
-                this->is_multipliable(rhs_matrix.row_size(), rhs_matrix.column_size()),
-                std::runtime_error("Dimensions mismatch when performing matrix division."));
+            if (scalar == 1)
+                return *this;
 
-            return *this;
+            static_assert(std::is_arithmetic_v<ElementType>,
+                          "ElementType must be arithmetic type.");
+
+            const SizeType row_size = this->row_size();
+            const SizeType col_size = this->column_size();
+
+            Matrix<ElementType> result(row_size, col_size);
+
+            if (scalar == 0)
+                return result;
+
+            for (SizeType i = 0; i < row_size * col_size; i++)
+                *(result.begin() + i) = scalar * (*(this->begin() + i));
+            return result;
         }
+
+        ElementType det()
+        {
+            static_assert(std::is_arithmetic_v<ElementType>,
+                          "Scalar must be of any arithmetic type.");
+
+            utility::expect(this->is_square_matrix() == true,
+                            std::runtime_error("Taking power of a non-square matrix is not allowed."));
+            return ElementType();
+        }
+
+        /// For testing purpose only. Actual algorithm does not repeatedly perform multiplication.
+        template <typename ScalarType>
+        Matrix pow(ScalarType scalar)
+        {
+            static_assert(std::is_arithmetic_v<ScalarType>,
+                          "Scalar must be of any arithmetic type.");
+
+            utility::expect(this->is_square_matrix() == true,
+                            std::runtime_error("Taking power of a non-square matrix is not allowed."));
+
+            // if (scalar == 0)
+            //     return this->identity();
+
+            if (scalar == 1)
+                return *this;
+
+            const SizeType row_size = this->row_size();
+            const SizeType col_size = this->column_size();
+            Matrix<ElementType> result(*this);
+
+            for (SizeType i = 0; i < scalar - 1; i++)
+                result = std::move(result * result);
+            return result;
+        }
+
+        /// Double-transposing on one matrix is not available.
+        Matrix<ElementType> transpose()
+        {
+            SizeType t_row_size = this->column_size();
+            SizeType t_col_size = this->row_size();
+
+            Matrix<ElementType> result(t_row_size, t_col_size);
+            for (SizeType i = 0; i < t_row_size; i++)
+                for (SizeType j = 0; j < t_row_size; j++)
+                    result(i, j) = (*this)(j, i);
+            return result;
+        }
+
+        // Matrix &operator/(const Matrix &rhs_matrix)
+        // {
+        //     const SizeType row_size = rhs_matrix.row_size();
+        //     const SizeType col_size = rhs_matrix.column_size();
+
+        //     utility::expect(
+        //         this->is_multipliable(rhs_matrix.row_size(), rhs_matrix.column_size()),
+        //         std::runtime_error("Dimensions mismatch when performing matrix division."));
+
+        //     return *this;
+        // }
 
     private:
         std::unique_ptr<MatrixType> matrix_ptr_;
@@ -334,11 +442,9 @@ namespace linear_algebra
             return col_index < 0 ? this->column_size() + col_index + 1 : col_index;
         }
 
-        bool is_multipliable(SizeType rhs_row_size, SizeType rhs_column_size)
+        bool is_multipliable(SizeType rhs_row_size)
         {
-            return utility::check_if_multipliable(
-                this->row_size(), this->column_size(),
-                rhs_row_size, rhs_column_size);
+            return this->column_size() == rhs_row_size;
         }
 
         bool is_summable(SizeType rhs_row_size, SizeType rhs_column_size)

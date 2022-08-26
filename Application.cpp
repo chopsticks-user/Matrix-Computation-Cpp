@@ -26,7 +26,32 @@ int main()
     {
         auto t1 = std::make_unique<utility::Timer>();
 
-        Matrix<int, 10, 10> m1(1);
+        // Matrix<long long> m1(16, 128);
+        // Matrix<long long, 128, 128> m2;
+        // Matrix<long long, 128, 3> m3;
+
+        // for (auto &i : m1)
+        //     i = utility::rand(1, 10);
+
+        // for (auto &i : m2)
+        //     i = utility::rand(1, 10);
+
+        // for (auto &i : m3)
+        //     i = utility::rand(1, 10);
+
+        // auto m4 = m1 * m2 * m2 * m3;
+
+        // std::cout << m1 << '\n';
+        // std::cout << m2 << '\n';
+        // std::cout << m3 << '\n';
+        // std::cout << m4 << '\n';
+
+        Matrix<int> m5(3, 3);
+        for (auto &i : m5)
+            i = utility::rand(1, 10);
+        std::cout << m5 << '\n';
+        std::cout << m5.pow(3) << '\n';
+        std::cout << m5.transpose() << '\n';
     }
     catch (const std::exception &e)
     {
