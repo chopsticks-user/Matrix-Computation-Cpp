@@ -22,13 +22,15 @@ namespace zz_no_inc
 
         ~DynamicMatrix_() noexcept
         {
-            std::cout << "An instance of DynamicMatrix has been destroyed.\n";
+            std::cout << "At memory address: " << std::addressof(*this)
+                      << ", an instance of DynamicMatrix, whose size of " << sizeof(*this)
+                      << " bytes, has been destroyed.\n";
         }
 
         /// Might throw (std::bad_alloc) if std::fill_n failed to allocate memory.
         explicit DynamicMatrix_(SizeType row_size,
                                 SizeType col_size = 0,
-                                const ElementType& fill_value = ElementType())
+                                const ElementType &fill_value = ElementType())
         {
             this->fill_initialize_(row_size, col_size, fill_value);
         }
@@ -133,8 +135,8 @@ namespace zz_no_inc
 
         // fill value = default value of ElementType, check if ElementType is default constructible
         DynamicMatrix_ &resize_and_fill_default_(SizeType new_n_rows,
-                                                SizeType new_n_cols,
-                                                ElementType fill_value = ElementType())
+                                                 SizeType new_n_cols,
+                                                 ElementType fill_value = ElementType())
         {
             this->set_dimensions_(new_n_rows, new_n_cols);
             this->data__.resize(new_n_rows * new_n_cols);

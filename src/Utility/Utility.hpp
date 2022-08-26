@@ -1,3 +1,7 @@
+#ifndef ULTILITY_HPP
+#define ULTILITY_HPP
+
+#include "Expect.hpp"
 
 #include <type_traits>
 #include <iostream>
@@ -155,6 +159,18 @@ namespace utility
         return false;
     }
 
+    bool check_if_equal_dimensions(SizeType row_size1, SizeType col_size1,
+                                   SizeType row_size2, SizeType col_size2)
+    {
+        return row_size1 == row_size2 && col_size1 == col_size2;
+    }
+
+    bool check_if_multipliable(SizeType row_size1, SizeType col_size1,
+                                   SizeType row_size2, SizeType col_size2)
+    {
+        return row_size1 == col_size2 && col_size1 == row_size2;
+    }
+
     template <SizeType row_size, SizeType col_size>
     struct is_declared_dynamic_matrix
         : public std::integral_constant<
@@ -223,7 +239,8 @@ namespace utility
                       "Element type must be move constructible.");
         static_assert(std::is_nothrow_destructible_v<ElementType>,
                       "Element type must be non-throwing destructible.");
-                      
     }
 
-}
+} /* utility */
+
+#endif /* ULTILITY_HPP */

@@ -255,6 +255,37 @@ namespace zz_no_inc
                 data__.at(i) = fill_value;
             return *this;
         }
+
+        template <typename SeqContainer1D>
+        MatrixBase_ &copy_data_to_row_(SizeType row_index,
+                                        const SeqContainer1D &rhs_container)
+        {
+            SizeType rhs_size = utility::get_1d_seq_container_size(rhs_container);
+            if (rhs_size != n_cols__)
+                throw std::range_error("Row sizes mismatch.");
+            if (row_index >= n_rows__ || row_index < 0)
+                throw std::range_error("Row index out of bounds.");
+
+            std::copy(std::begin(rhs_container),
+                      std::end(rhs_container),
+                      data__.begin() + n_cols__ * row_index);
+            return *this;
+        }
+
+        template <typename SeqContainer1D>
+        MatrixBase_ &copy_data_to_col_(SizeType col_index,
+                                        const SeqContainer1D &rhs_container)
+        {
+            SizeType rhs_size = utility::get_1d_seq_container_size(rhs_container);
+            if (rhs_size != n_rows__)
+                throw std::range_error("Column sizes mismatch.");
+            if (col_index >= n_cols__ || col_index < 0)
+                throw std::range_error("Column index out of bounds.");
+
+            for (SizeType i = 0; i < rhs_size; i++)
+                data__[n_cols__ * i + col_index] = rhs_container[i];
+            return *this;
+        }
     };
 } /* linear_algebra */
 
