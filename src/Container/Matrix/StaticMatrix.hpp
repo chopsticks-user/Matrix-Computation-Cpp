@@ -9,19 +9,19 @@ namespace zz_no_inc
 {
 #if ALLOW_NEGATIVE_INDEX
     template <typename ElementType,
-              matrix::SizeType templ_row_size = 0,
-              matrix::SizeType templ_col_size = 0>
+              matrix::SizeType templ_col_size = 0,
+              matrix::SizeType templ_row_size = 0>
 #else
     template <typename ElementType,
-              matrix::PositiveSizeType templ_row_size = 0,
-              matrix::PositiveSizeType templ_col_size = 0>
+              matrix::PositiveSizeType templ_col_size = 0,
+              matrix::PositiveSizeType templ_row_size = 0>
 #endif /* ALLOW_NEGATIVE_INDEX */
     class StaticMatrix_
         : public MatrixBase_<ElementType,
-                             templ_row_size,
-                             templ_col_size>
+                             templ_col_size,
+                             templ_row_size>
     {
-        typedef MatrixBase_<ElementType, templ_row_size, templ_col_size> Base_;
+        typedef MatrixBase_<ElementType, templ_col_size, templ_row_size> Base_;
 #if ALLOW_NEGATIVE_INDEX
         typedef matrix::SizeType SizeType;
 #else
@@ -56,18 +56,18 @@ namespace zz_no_inc
         };
 
         template <typename RhsMatrixType,
-                  SizeType row_size,
-                  SizeType col_size>
-        StaticMatrix_(const MatrixBase_<RhsMatrixType, row_size, col_size>
+                  SizeType col_size,
+                  SizeType row_size>
+        StaticMatrix_(const MatrixBase_<RhsMatrixType, col_size, row_size>
                           &rhs_matrix)
         {
             this->copy_initialize_(rhs_matrix);
         };
 
         template <typename RhsMatrixType,
-                  SizeType row_size,
-                  SizeType col_size>
-        StaticMatrix_(MatrixBase_<RhsMatrixType, row_size, col_size>
+                  SizeType col_size,
+                  SizeType row_size>
+        StaticMatrix_(MatrixBase_<RhsMatrixType, col_size, row_size>
                           &&rhs_matrix)
         {
             this->move_initialize_(std::move(rhs_matrix));

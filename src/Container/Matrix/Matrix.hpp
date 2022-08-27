@@ -10,9 +10,15 @@
 
 namespace linear_algebra
 {
+#if ALLOW_NEGATIVE_INDEX
     template <typename ElementType = float,
-              long templ_row_size = 0,
-              long templ_col_size = 0>
+              zz_no_inc::matrix::SizeType templ_col_size = 0,
+              zz_no_inc::matrix::SizeType templ_row_size = 0>
+#else
+    template <typename ElementType = float,
+              zz_no_inc::matrix::PositiveSizeType templ_col_size = 0,
+              zz_no_inc::matrix::PositiveSizeType templ_row_size = 0>
+#endif /* ALLOW_NEGATIVE_INDEX */
     class Matrix
     {
 #if ALLOW_NEGATIVE_INDEX
@@ -21,8 +27,8 @@ namespace linear_algebra
         typedef zz_no_inc::matrix::PositiveSizeType SizeType;
 #endif /* ALLOW_NEGATIVE_INDEX */
         typedef zz_no_inc::StaticMatrix_<ElementType,
-                                         templ_row_size,
-                                         templ_col_size>
+                                         templ_col_size,
+                                         templ_row_size>
             StaticMatrixType;
 
         typedef zz_no_inc::DynamicMatrix_<ElementType>
@@ -30,19 +36,19 @@ namespace linear_algebra
 
         template <typename ReturnType>
         using DynamicMatrixMethod = typename std::enable_if_t<
-            zz_no_inc::matrix::is_declared_dynamic_matrix<templ_row_size,
-                                                          templ_col_size>{},
+            zz_no_inc::matrix::is_declared_dynamic_matrix<templ_col_size,
+                                                          templ_row_size>{},
             ReturnType>;
 
         template <typename ReturnType>
         using StaticMatrixMethod = typename std::enable_if_t<
-            zz_no_inc::matrix::is_declared_static_matrix<templ_row_size,
-                                                         templ_col_size>{},
+            zz_no_inc::matrix::is_declared_static_matrix<templ_col_size,
+                                                         templ_row_size>{},
             ReturnType>;
 
         typedef std::conditional_t<zz_no_inc::matrix::check_if_dynamic_matrix<
-                                       templ_row_size,
-                                       templ_col_size>(),
+                                       templ_col_size,
+                                       templ_row_size>(),
                                    DynamicMatrixType,
                                    StaticMatrixType>
             MatrixType;
@@ -84,18 +90,18 @@ namespace linear_algebra
             : matrix_ptr_(std::make_unique<MatrixType>(rhs_matrix.data())){};
 
         template <typename RhsElementType,
-                  SizeType rhs_row_size,
-                  SizeType rhs_col_size>
-        Matrix(Matrix<RhsElementType, rhs_row_size, rhs_col_size>
+                  SizeType rhs_col_size,
+                  SizeType rhs_row_size>
+        Matrix(Matrix<RhsElementType, rhs_col_size, rhs_row_size>
                    &rhs_matrix)
             : matrix_ptr_(std::make_unique<MatrixType>(rhs_matrix.data())){};
 
         Matrix(Matrix &&rhs_matrix) = default;
 
         template <typename RhsElementType,
-                  SizeType rhs_row_size,
-                  SizeType rhs_col_size>
-        Matrix(Matrix<RhsElementType, rhs_row_size, rhs_col_size>
+                  SizeType rhs_col_size,
+                  SizeType rhs_row_size>
+        Matrix(Matrix<RhsElementType, rhs_col_size, rhs_row_size>
                    &&rhs_matrix)
             : matrix_ptr_(std::make_unique<MatrixType>(
                   std::move(rhs_matrix.data()))){};
@@ -108,9 +114,9 @@ namespace linear_algebra
         }
 
         template <typename RhsElementType,
-                  SizeType rhs_row_size,
-                  SizeType rhs_col_size>
-        Matrix &operator=(Matrix<RhsElementType, rhs_row_size, rhs_col_size>
+                  SizeType rhs_col_size,
+                  SizeType rhs_row_size>
+        Matrix &operator=(Matrix<RhsElementType, rhs_col_size, rhs_row_size>
                               &rhs_matrix)
         {
             this->matrix_ptr_ = std::make_unique<MatrixType>(
@@ -121,9 +127,9 @@ namespace linear_algebra
         Matrix &operator=(Matrix &&rhs_matrix) = default;
 
         template <typename RhsElementType,
-                  SizeType rhs_row_size,
-                  SizeType rhs_col_size>
-        Matrix &operator=(Matrix<RhsElementType, rhs_row_size, rhs_col_size>
+                  SizeType rhs_col_size,
+                  SizeType rhs_row_size>
+        Matrix &operator=(Matrix<RhsElementType, rhs_col_size, rhs_row_size>
                               &&rhs_matrix)
         {
             this->matrix_ptr_ = std::make_unique<MatrixType>(
@@ -155,14 +161,14 @@ namespace linear_algebra
 
         constexpr bool is_dynamic() noexcept
         {
-            return zz_no_inc::matrix::is_declared_dynamic_matrix<templ_row_size,
-                                                                 templ_col_size>{};
+            return zz_no_inc::matrix::is_declared_dynamic_matrix<templ_col_size,
+                                                                 templ_row_size>{};
         }
 
         constexpr bool is_static() noexcept
         {
-            return zz_no_inc::matrix::is_declared_static_matrix<templ_row_size,
-                                                                templ_col_size>{};
+            return zz_no_inc::matrix::is_declared_static_matrix<templ_col_size,
+                                                                templ_row_size>{};
         }
 
         template <typename ReturnType = SizeType>
@@ -197,7 +203,7 @@ namespace linear_algebra
         constexpr StaticMatrixMethod<ReturnType>
         is_square() const noexcept
         {
-            return templ_row_size == templ_col_size;
+            return templ_col_size == templ_row_size;
         }
 
         template <typename ReturnType = bool>
@@ -211,15 +217,15 @@ namespace linear_algebra
         {
             auto copy_ptr = std::make_unique<MatrixType>();
             copy_ptr->data__ = std::move(this->matrix_ptr_->clone_data_());
-            if constexpr (zz_no_inc::matrix::is_declared_dynamic_matrix<templ_row_size,
-                                                                        templ_col_size>{})
+            if constexpr (zz_no_inc::matrix::is_declared_dynamic_matrix<templ_col_size,
+                                                                        templ_row_size>{})
                 copy_ptr->set_dimensions_(this->row_size(), this->column_size());
             return std::move(copy_ptr);
         }
 
         auto clone()
         {
-            return Matrix<ElementType, templ_row_size, templ_col_size>(*this);
+            return Matrix<ElementType, templ_col_size, templ_row_size>(*this);
         }
 
         auto begin() const noexcept { return &*(this->matrix_ptr_->data__.begin()); };
@@ -312,9 +318,9 @@ namespace linear_algebra
 
         template <typename ReturnType = Matrix &>
         DynamicMatrixMethod<ReturnType>
-        resize(SizeType new_row_size, SizeType new_col_size)
+        resize(SizeType new_col_size, SizeType new_row_size)
         {
-            this->matrix_ptr_->resize_and_fill_default_(new_row_size, new_col_size);
+            this->matrix_ptr_->resize_and_fill_default_(new_col_size, new_row_size);
             return *this;
         }
 
@@ -331,15 +337,15 @@ namespace linear_algebra
         template <typename RhsMatrixType>
         Matrix operator+(const RhsMatrixType &rhs_matrix)
         {
-            const SizeType rhs_row_size = rhs_matrix.row_size();
             const SizeType rhs_col_size = rhs_matrix.column_size();
+            const SizeType rhs_row_size = rhs_matrix.row_size();
 
             utility::expect(
-                this->is_summable(rhs_row_size, rhs_col_size),
+                this->is_summable(rhs_col_size, rhs_row_size),
                 std::runtime_error(
                     "Dimensions mismatch when performing matrix addition."));
 
-            Matrix<ElementType> result(rhs_row_size, rhs_col_size);
+            Matrix<ElementType> result(rhs_col_size, rhs_row_size);
             auto it1 = this->begin();
             auto it2 = rhs_matrix.begin();
             auto it_end1 = this->end();
@@ -361,15 +367,15 @@ namespace linear_algebra
         template <typename RhsMatrixType>
         Matrix operator-(const RhsMatrixType &rhs_matrix)
         {
-            const SizeType rhs_row_size = rhs_matrix.row_size();
             const SizeType rhs_col_size = rhs_matrix.column_size();
+            const SizeType rhs_row_size = rhs_matrix.row_size();
 
             utility::expect(
-                this->is_summable(rhs_row_size, rhs_col_size),
+                this->is_summable(rhs_col_size, rhs_row_size),
                 std::runtime_error(
                     "Dimensions mismatch when performing matrix subtraction."));
 
-            Matrix<ElementType> result(rhs_row_size, rhs_col_size);
+            Matrix<ElementType> result(rhs_col_size, rhs_row_size);
             auto it1 = this->begin();
             auto it2 = rhs_matrix.begin();
             auto it_end1 = this->end();
@@ -391,17 +397,17 @@ namespace linear_algebra
         template <typename RhsMatrixType>
         Matrix operator*(const RhsMatrixType &rhs_matrix)
         {
-            const SizeType row_size = this->row_size();
             const SizeType col_size = this->column_size();
-            const SizeType rhs_row_size = rhs_matrix.row_size();
+            const SizeType row_size = this->row_size();
             const SizeType rhs_col_size = rhs_matrix.column_size();
+            const SizeType rhs_row_size = rhs_matrix.row_size();
 
             utility::expect(
-                this->is_multipliable(rhs_row_size),
+                this->is_multipliable(rhs_col_size),
                 std::runtime_error(
                     "Dimensions mismatch when performing matrix multiplication."));
 
-            Matrix<ElementType> result(row_size, rhs_col_size);
+            Matrix<ElementType> result(col_size, rhs_row_size);
 
             auto it1 = this->begin();
             auto it2 = rhs_matrix.begin();
@@ -410,12 +416,12 @@ namespace linear_algebra
             auto res_it = result.begin();
             auto res_it_end = result.end();
 
-            for (SizeType i = 0; i < row_size; i++)
-                for (SizeType j = 0; j < rhs_col_size; j++)
-                    for (SizeType k = 0; k < rhs_row_size; k++)
-                        *(res_it + i * rhs_col_size + j) +=
-                            (*(it1 + i * rhs_row_size + k)) *
-                            (*(it2 + k * rhs_col_size + j));
+            for (SizeType i = 0; i < col_size; i++)
+                for (SizeType j = 0; j < rhs_row_size; j++)
+                    for (SizeType k = 0; k < rhs_col_size; k++)
+                        *(res_it + i * rhs_row_size + j) +=
+                            (*(it1 + i * rhs_col_size + k)) *
+                            (*(it2 + k * rhs_row_size + j));
 
             return result;
         }
@@ -429,10 +435,10 @@ namespace linear_algebra
             static_assert(std::is_arithmetic_v<ElementType>,
                           "ElementType must be arithmetic type.");
 
-            const SizeType row_size = this->row_size();
             const SizeType col_size = this->column_size();
+            const SizeType row_size = this->row_size();
 
-            Matrix<ElementType> result(row_size, col_size);
+            Matrix<ElementType> result(col_size, row_size);
 
             if (scalar == 0)
                 return result;
@@ -481,10 +487,10 @@ namespace linear_algebra
                             std::runtime_error(
                                 "Cannot find an identity matrix of a non-square matrix."));
 
-            SizeType row_size = this->row_size();
-            Matrix<ElementType> identity_matrix(row_size, row_size);
-            while (row_size--)
-                identity_matrix(row_size, row_size) = 1;
+            SizeType col_size = this->col_size();
+            Matrix<ElementType> identity_matrix(col_size, col_size);
+            while (col_size--)
+                identity_matrix(col_size, col_size) = 1;
             return identity_matrix;
         }
 
@@ -493,11 +499,11 @@ namespace linear_algebra
             return *this;
         }
 
-        Matrix sub(SizeType rm_row_index, SizeType rm_col_index)
+        Matrix sub(SizeType rm_col_index, SizeType rm_row_index)
         {
             Matrix<ElementType> sub_matrix(std::move(this->clone()));
-            sub_matrix.remove_row(rm_row_index);
             sub_matrix.remove_column(rm_col_index);
+            sub_matrix.remove_row(rm_row_index);
             return sub_matrix;
         }
 
@@ -521,8 +527,8 @@ namespace linear_algebra
             if (scalar == -1)
                 return this->inverse();
 
-            const SizeType row_size = this->row_size();
             const SizeType col_size = this->column_size();
+            const SizeType row_size = this->row_size();
             Matrix<ElementType> result(*this);
 
             for (SizeType i = 0; i < scalar - 1; i++)
@@ -533,11 +539,11 @@ namespace linear_algebra
         /// Double-transposing on one matrix is not available.
         Matrix<ElementType> transpose()
         {
-            SizeType t_row_size = this->column_size();
             SizeType t_col_size = this->row_size();
+            SizeType t_row_size = this->column_size();
 
-            Matrix<ElementType> result(t_row_size, t_col_size);
-            for (SizeType i = 0; i < t_row_size; i++)
+            Matrix<ElementType> result(t_col_size, t_row_size);
+            for (SizeType i = 0; i < t_col_size; i++)
                 for (SizeType j = 0; j < t_row_size; j++)
                     result(i, j) = (*this)(j, i);
             return result;
@@ -551,11 +557,11 @@ namespace linear_algebra
 
             row_index = this->valid_row_index_(row_index);
 
+            // SizeType col_size = this->column_size();
             SizeType row_size = this->row_size();
-            SizeType col_size = this->column_size();
 
-            for (SizeType i = 0; i < col_size; i++)
-                *(this->begin() + row_index * col_size + i) += value;
+            for (SizeType i = 0; i < row_size; i++)
+                *(this->begin() + row_index * row_size + i) += value;
 
             return *this;
         }
@@ -568,11 +574,11 @@ namespace linear_algebra
 
             row_index = this->valid_row_index_(row_index);
 
+            // SizeType col_size = this->column_size();
             SizeType row_size = this->row_size();
-            SizeType col_size = this->column_size();
 
-            for (SizeType i = 0; i < col_size; i++)
-                *(this->begin() + row_index * col_size + i) *= value;
+            for (SizeType i = 0; i < row_size; i++)
+                *(this->begin() + row_index * row_size + i) *= value;
 
             return *this;
         }
@@ -584,11 +590,11 @@ namespace linear_algebra
             row_index2 = this->valid_row_index_(row_index2);
 
             SizeType row_size = this->row_size();
-            SizeType col_size = this->column_size();
+            // SizeType col_size = this->column_size();
 
-            for (SizeType i = 0; i < col_size; i++)
-                std::swap(*(this->begin() + row_index1 * col_size + i),
-                          *(this->begin() + row_index2 * col_size + i));
+            for (SizeType i = 0; i < row_size; i++)
+                std::swap(*(this->begin() + row_index1 * row_size + i),
+                          *(this->begin() + row_index2 * row_size + i));
 
             return *this;
         }
@@ -622,24 +628,24 @@ namespace linear_algebra
 
         SizeType validate_negative_append_row_index_(SizeType row_index) const
         {
-            return row_index < 0 ? this->row_size() + row_index + 1 : row_index;
+            return row_index < 0 ? this->column_size() + row_index + 1 : row_index;
         }
 
         SizeType validate_negative_append_col_index_(SizeType col_index) const
         {
-            return col_index < 0 ? this->column_size() + col_index + 1 : col_index;
+            return col_index < 0 ? this->row_size() + col_index + 1 : col_index;
         }
 
-        bool is_multipliable(SizeType rhs_row_size) const noexcept
+        bool is_multipliable(SizeType rhs_col_size) const noexcept
         {
-            return this->column_size() == rhs_row_size;
+            return this->row_size() == rhs_col_size;
         }
 
-        bool is_summable(SizeType rhs_row_size, SizeType rhs_column_size) const noexcept
+        bool is_summable(SizeType rhs_col_size, SizeType rhs_row_size) const noexcept
         {
             return zz_no_inc::matrix::check_if_equal_dimensions(
-                this->row_size(), this->column_size(),
-                rhs_row_size, rhs_column_size);
+                this->column_size(), this->row_size(),
+                rhs_col_size, rhs_row_size);
         }
     };
 }

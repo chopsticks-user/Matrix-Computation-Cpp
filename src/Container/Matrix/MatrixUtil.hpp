@@ -12,125 +12,125 @@ namespace zz_no_inc
         typedef long SizeType;
         typedef std::size_t PositiveSizeType;
 
-        template <SizeType row_size, SizeType col_size>
+        template <SizeType col_size, SizeType row_size>
         constexpr void validate_matrix_dimensions()
         {
-            static_assert(row_size >= 0,
-                          "Row size must be non-negative.");
             static_assert(col_size >= 0,
+                          "Row size must be non-negative.");
+            static_assert(row_size >= 0,
                           "Column size must be non-negative.");
-            static_assert(row_size != 0 || col_size == 0,
+            static_assert(col_size != 0 || row_size == 0,
                           "Dynamic matrices cannot have a fixed column size.");
         }
 
-        template <SizeType row_size, SizeType col_size>
+        template <SizeType col_size, SizeType row_size>
         constexpr bool check_if_dynamic_matrix()
         {
-            validate_matrix_dimensions<row_size, col_size>();
-            return row_size == 0;
+            validate_matrix_dimensions<col_size, row_size>();
+            return col_size == 0;
         }
 
-        bool check_if_dynamic_matrix(SizeType row_size, SizeType col_size)
+        bool check_if_dynamic_matrix(SizeType col_size, SizeType row_size)
         {
-            return row_size == 0 && col_size == 0;
+            return col_size == 0 && row_size == 0;
         }
 
-        template <SizeType row_size, SizeType col_size>
+        template <SizeType col_size, SizeType row_size>
         constexpr bool check_if_static_matrix()
         {
-            validate_matrix_dimensions<row_size, col_size>();
-            return row_size > 0;
+            validate_matrix_dimensions<col_size, row_size>();
+            return col_size > 0;
         }
 
-        bool check_if_static_matrix(SizeType row_size, SizeType col_size)
+        bool check_if_static_matrix(SizeType col_size, SizeType row_size)
         {
-            return row_size > 0;
+            return col_size > 0;
         }
 
-        template <SizeType row_size, SizeType col_size>
+        template <SizeType col_size, SizeType row_size>
         constexpr bool check_if_static_square_matrix()
         {
-            validate_matrix_dimensions<row_size, col_size>();
-            return row_size > 0 && (col_size == 0 || row_size == col_size);
+            validate_matrix_dimensions<col_size, row_size>();
+            return col_size > 0 && (row_size == 0 || col_size == row_size);
         }
 
-        bool check_if_static_square_matrix(SizeType row_size, SizeType col_size)
+        bool check_if_static_square_matrix(SizeType col_size, SizeType row_size)
         {
-            return row_size > 0 && (col_size == 0 || row_size == col_size);
+            return col_size > 0 && (row_size == 0 || col_size == row_size);
         }
 
-        template <SizeType row_size, SizeType col_size>
-        constexpr SizeType verified_matrix_col_size()
+        template <SizeType col_size, SizeType row_size>
+        constexpr SizeType verified_matrix_row_size()
         {
-            if constexpr (check_if_static_square_matrix<row_size, col_size>() == true)
-                return row_size;
-            return col_size;
+            if constexpr (check_if_static_square_matrix<col_size, row_size>() == true)
+                return col_size;
+            return row_size;
         }
 
-        SizeType verified_matrix_col_size(SizeType row_size, SizeType col_size)
+        SizeType verified_matrix_row_size(SizeType col_size, SizeType row_size)
         {
-            if (check_if_static_square_matrix(row_size, col_size) == true)
-                return row_size;
-            return col_size;
+            if (check_if_static_square_matrix(col_size, row_size) == true)
+                return col_size;
+            return row_size;
         }
 
-        template <SizeType row_size, SizeType col_size>
+        template <SizeType col_size, SizeType row_size>
         constexpr SizeType verified_matrix_data_container_size()
         {
-            return row_size * verified_matrix_col_size<row_size, col_size>();
+            return col_size * verified_matrix_row_size<col_size, row_size>();
         }
 
         SizeType verified_matrix_data_container_size(
-            SizeType row_size,
-            SizeType col_size)
+            SizeType col_size,
+            SizeType row_size)
         {
-            return row_size * verified_matrix_col_size(row_size, col_size);
+            return col_size * verified_matrix_row_size(col_size, row_size);
         }
 
-        template <SizeType row_size1, SizeType col_size1,
-                  SizeType row_size2, SizeType col_size2>
+        template <SizeType col_size1, SizeType row_size1,
+                  SizeType col_size2, SizeType row_size2>
         constexpr bool check_if_equal_dimensions()
         {
-            if constexpr (row_size1 == row_size2)
-                if constexpr (verified_matrix_col_size<row_size1, col_size1>() ==
-                              verified_matrix_col_size<row_size2, col_size2>())
+            if constexpr (col_size1 == col_size2)
+                if constexpr (verified_matrix_row_size<col_size1, row_size1>() ==
+                              verified_matrix_row_size<col_size2, row_size2>())
                     return true;
             return false;
         }
 
-        bool check_if_equal_dimensions(SizeType row_size1, SizeType col_size1,
-                                       SizeType row_size2, SizeType col_size2)
+        bool check_if_equal_dimensions(SizeType col_size1, SizeType row_size1,
+                                       SizeType col_size2, SizeType row_size2)
         {
-            return row_size1 == row_size2 && col_size1 == col_size2;
+            return col_size1 == col_size2 && row_size1 == row_size2;
         }
 
-        bool check_if_multipliable(SizeType row_size1, SizeType col_size1,
-                                   SizeType row_size2, SizeType col_size2)
+        bool check_if_multipliable(SizeType col_size1, SizeType row_size1,
+                                   SizeType col_size2, SizeType row_size2)
         {
-            return row_size1 == col_size2 && col_size1 == row_size2;
+            return col_size1 == row_size2 && row_size1 == col_size2;
         }
 
-        template <SizeType row_size, SizeType col_size>
+        template <SizeType col_size, SizeType row_size>
         struct is_declared_dynamic_matrix
             : public std::integral_constant<
-                  bool, check_if_dynamic_matrix<row_size, col_size>()>
+                  bool, check_if_dynamic_matrix<col_size, row_size>()>
         {
         };
 
-        // template <SizeType row_size, SizeType col_size>
+        // template <SizeType col_size, SizeType row_size>
         // using is_declared_dynamic_matrix_v =
-        //     typename is_declared_dynamic_matrix<row_size, col_size>::value;
+        //     typename is_declared_dynamic_matrix<col_size, row_size>::value;
 
-        template <SizeType row_size, SizeType col_size>
+        template <SizeType col_size, SizeType row_size>
         struct is_declared_static_matrix
             : public std::integral_constant<
-                  bool, check_if_static_matrix<row_size, col_size>()>
+                  bool, check_if_static_matrix<col_size, row_size>()>
         {
         };
 
-        // template <SizeType row_size, SizeType col_size>
+        // template <SizeType col_size, SizeType row_size>
         // using is_declared_static_matrix_v =
-        //     typename is_declared_static_matrix<row_size, col_size>::value;
+        //     typename is_declared_static_matrix<col_size, row_size>::value;
 
         template <typename ContainerItType>
         void print_1d_container(ContainerItType it_begin, ContainerItType it_end)
@@ -149,8 +149,8 @@ namespace zz_no_inc
 
         // in Matrix.hpp
         template <template <typename ElementType,
-                            SizeType row_size,
-                            SizeType col_size>
+                            SizeType col_size,
+                            SizeType row_size>
                   class T,
                   typename ElementType>
         struct is_dynamic_matrix<T<ElementType, 0, 0>>

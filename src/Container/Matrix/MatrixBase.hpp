@@ -18,17 +18,17 @@ namespace zz_no_inc
 {
 #if ALLOW_NEGATIVE_INDEX
     template <typename ElementType,
-              SizeType templ_row_size = 0,
-              SizeType templ_col_size = 0>
+              matrix::SizeType templ_col_size = 0,
+              matrix::SizeType templ_row_size = 0>
 #else
     template <typename ElementType,
-              matrix::PositiveSizeType templ_row_size = 0,
-              matrix::PositiveSizeType templ_col_size = 0>
+              matrix::PositiveSizeType templ_col_size = 0,
+              matrix::PositiveSizeType templ_row_size = 0>
 #endif /* ALLOW_NEGATIVE_INDEX */
     struct MatrixBase_
     {
 #if ALLOW_NEGATIVE_INDEX
-        typedef SizeType SizeType;
+        typedef matrix::SizeType SizeType;
 #else
         typedef matrix::PositiveSizeType SizeType;
 #endif /* ALLOW_NEGATIVE_INDEX */
@@ -37,14 +37,14 @@ namespace zz_no_inc
 
         template <typename ReturnType>
         using DynamicMatrixMethod = typename std::enable_if_t<
-            matrix::is_declared_dynamic_matrix<templ_row_size,
-                                                templ_col_size>{},
+            matrix::is_declared_dynamic_matrix<templ_col_size,
+                                                templ_row_size>{},
             ReturnType>;
 
         template <typename ReturnType>
         using StaticMatrixMethod = typename std::enable_if_t<
-            matrix::is_declared_static_matrix<templ_row_size,
-                                               templ_col_size>{},
+            matrix::is_declared_static_matrix<templ_col_size,
+                                               templ_row_size>{},
             ReturnType>;
 
         /**
@@ -57,36 +57,36 @@ namespace zz_no_inc
 
         constexpr bool is_dynamic_()
         {
-            return matrix::is_declared_dynamic_matrix<templ_row_size,
-                                                       templ_col_size>{};
+            return matrix::is_declared_dynamic_matrix<templ_col_size,
+                                                       templ_row_size>{};
         }
 
         constexpr bool is_static_()
         {
-            return matrix::is_declared_static_matrix<templ_row_size,
-                                                      templ_col_size>{};
+            return matrix::is_declared_static_matrix<templ_col_size,
+                                                      templ_row_size>{};
         }
 
-        const SizeType &get_row_size_() const noexcept { return n_rows__; }
+        const SizeType &get_col_size_() const noexcept { return n_rows__; }
 
-        const SizeType &get_col_size_() const noexcept { return n_cols__; }
+        const SizeType &get_row_size_() const noexcept { return n_cols__; }
 
         template <typename ReturnType = void>
         StaticMatrixMethod<ReturnType>
         set_dimensions_()
         {
             matrix::check_element_requirements<ElementType>();
-            n_rows__ = templ_row_size;
-            n_cols__ = matrix::verified_matrix_col_size<templ_row_size, templ_col_size>();
+            n_rows__ = templ_col_size;
+            n_cols__ = matrix::verified_matrix_row_size<templ_col_size, templ_row_size>();
         }
 
         template <typename ReturnType = void>
         DynamicMatrixMethod<ReturnType>
-        set_dimensions_(SizeType row_size = 0, SizeType col_size = 0)
+        set_dimensions_(SizeType col_size = 0, SizeType row_size = 0)
         {
             matrix::check_element_requirements<ElementType>();
-            n_rows__ = row_size;
-            n_cols__ = matrix::verified_matrix_col_size(row_size, col_size);
+            n_rows__ = col_size;
+            n_cols__ = matrix::verified_matrix_row_size(col_size, row_size);
         }
 
         // fill value = default value of ElementType, check if ElementType is default constructible
@@ -95,90 +95,90 @@ namespace zz_no_inc
         fill_initialize_(ElementType fill_value = ElementType())
         {
             set_dimensions_();
-            data__.resize(templ_row_size * templ_col_size);
+            data__.resize(templ_col_size * templ_row_size);
             data__.shrink_to_fit();
         }
 
         // fill value = default value of ElementType, check if ElementType is default constructible
         template <typename ReturnType = void>
         DynamicMatrixMethod<ReturnType>
-        fill_initialize_(SizeType row_size,
-                         SizeType col_size,
+        fill_initialize_(SizeType col_size,
+                         SizeType row_size,
                          ElementType fill_value = ElementType())
         {
-            set_dimensions_(row_size, col_size);
-            data__.resize(row_size * col_size, fill_value);
+            set_dimensions_(col_size, row_size);
+            data__.resize(col_size * row_size, fill_value);
         }
 
-        template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
+        template <typename RhsElementType, SizeType rhs_col_size, SizeType rhs_row_size,
                   typename ReturnType = void>
         StaticMatrixMethod<ReturnType>
         copy_initialize_(const MatrixBase_<RhsElementType,
-                                           rhs_row_size,
-                                           rhs_col_size>
+                                           rhs_col_size,
+                                           rhs_row_size>
                              &rhs_matrix)
         {
-            if constexpr (rhs_row_size != 0)
+            if constexpr (rhs_col_size != 0)
                 static_assert(matrix::check_if_equal_dimensions<
-                                  templ_row_size, templ_col_size,
-                                  rhs_row_size, rhs_col_size>(),
+                                  templ_col_size, templ_row_size,
+                                  rhs_col_size, rhs_row_size>(),
                               "Copy to a static matrix: Dimensions mismatch.");
 
             set_dimensions_();
-            if (rhs_matrix.n_rows__ != templ_row_size ||
-                rhs_matrix.n_cols__ != matrix::verified_matrix_col_size(templ_row_size, templ_col_size))
+            if (rhs_matrix.n_rows__ != templ_col_size ||
+                rhs_matrix.n_cols__ != matrix::verified_matrix_row_size(templ_col_size, templ_row_size))
                 throw std::runtime_error("Copy to a static matrix: Dimensions mismatch.");
             data__ = rhs_matrix.data__;
             data__.shrink_to_fit();
         }
 
-        template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
+        template <typename RhsElementType, SizeType rhs_col_size, SizeType rhs_row_size,
                   typename ReturnType = void>
         DynamicMatrixMethod<ReturnType>
         copy_initialize_(const MatrixBase_<RhsElementType,
-                                           rhs_row_size,
-                                           rhs_col_size>
+                                           rhs_col_size,
+                                           rhs_row_size>
                              &rhs_matrix)
         {
-            if constexpr (rhs_row_size != 0)
-                set_dimensions_(rhs_row_size, rhs_col_size);
+            if constexpr (rhs_col_size != 0)
+                set_dimensions_(rhs_col_size, rhs_row_size);
             else
                 set_dimensions_(rhs_matrix.n_rows__, rhs_matrix.n_cols__);
             data__ = rhs_matrix.data__;
         }
 
-        template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
+        template <typename RhsElementType, SizeType rhs_col_size, SizeType rhs_row_size,
                   typename ReturnType = void>
         StaticMatrixMethod<ReturnType>
         move_initialize_(MatrixBase_<RhsElementType,
-                                     rhs_row_size,
-                                     rhs_col_size>
+                                     rhs_col_size,
+                                     rhs_row_size>
                              &&rhs_matrix)
         {
-            if constexpr (rhs_row_size != 0)
+            if constexpr (rhs_col_size != 0)
                 static_assert(matrix::check_if_equal_dimensions<
-                                  templ_row_size, templ_col_size,
-                                  rhs_row_size, rhs_col_size>(),
+                                  templ_col_size, templ_row_size,
+                                  rhs_col_size, rhs_row_size>(),
                               "Copy to a static matrix: Dimensions mismatch.");
 
             set_dimensions_();
-            if (rhs_matrix.n_rows__ != templ_row_size ||
-                rhs_matrix.n_cols__ != matrix::verified_matrix_col_size(templ_row_size, templ_col_size))
+            if (rhs_matrix.n_rows__ != templ_col_size ||
+                rhs_matrix.n_cols__ != matrix::verified_matrix_row_size(templ_col_size, templ_row_size))
                 throw std::runtime_error("Copy to a static matrix: Dimensions mismatch.");
             data__ = std::move(rhs_matrix.data__);
         }
 
-        template <typename RhsElementType, SizeType rhs_row_size, SizeType rhs_col_size,
+        template <typename RhsElementType, SizeType rhs_col_size, SizeType rhs_row_size,
                   typename ReturnType = void>
         DynamicMatrixMethod<ReturnType>
         move_initialize_(MatrixBase_<RhsElementType,
-                                     rhs_row_size,
-                                     rhs_col_size>
+                                     rhs_col_size,
+                                     rhs_row_size>
                              &&rhs_matrix)
         {
-            if constexpr (rhs_row_size != 0)
-                set_dimensions_(rhs_row_size, rhs_col_size);
-            // fill_initialize_(rhs_row_size, rhs_col_size);
+            if constexpr (rhs_col_size != 0)
+                set_dimensions_(rhs_col_size, rhs_row_size);
+            // fill_initialize_(rhs_col_size, rhs_row_size);
             else
                 set_dimensions_(rhs_matrix.n_rows__, rhs_matrix.n_cols__);
             // fill_initialize_(rhs_matrix.n_rows__, rhs_matrix.n_cols__);
@@ -231,8 +231,8 @@ namespace zz_no_inc
         DataContainerType clone_data_() const
         {
             DataContainerType cloned_data;
-            if constexpr (matrix::is_declared_dynamic_matrix<templ_row_size,
-                                                              templ_col_size>{})
+            if constexpr (matrix::is_declared_dynamic_matrix<templ_col_size,
+                                                              templ_row_size>{})
                 cloned_data.resize(n_rows__ * n_cols__);
             std::copy(data__.begin(), data__.end(), cloned_data.begin());
             return cloned_data;

@@ -37,11 +37,11 @@ namespace zz_no_inc
 #endif /* DEBUG_LIN_ALG */
 
         /// Might throw (std::bad_alloc) if std::fill_n failed to allocate memory.
-        explicit DynamicMatrix_(SizeType row_size,
-                                SizeType col_size = 0,
+        explicit DynamicMatrix_(SizeType col_size,
+                                SizeType row_size = 0,
                                 const ElementType &fill_value = ElementType())
         {
-            this->fill_initialize_(row_size, col_size, fill_value);
+            this->fill_initialize_(col_size, row_size, fill_value);
         }
 
         DynamicMatrix_(const DynamicMatrix_ &rhs_matrix)
@@ -50,9 +50,9 @@ namespace zz_no_inc
         };
 
         template <typename RhsMatrixType,
-                  SizeType row_size,
-                  SizeType col_size>
-        DynamicMatrix_(const MatrixBase_<RhsMatrixType, row_size, col_size>
+                  SizeType col_size,
+                  SizeType row_size>
+        DynamicMatrix_(const MatrixBase_<RhsMatrixType, col_size, row_size>
                            &rhs_matrix)
         {
             this->copy_initialize_(rhs_matrix);
@@ -61,9 +61,9 @@ namespace zz_no_inc
         DynamicMatrix_(DynamicMatrix_ &&rhs_matrix) = default;
 
         template <typename RhsMatrixType,
-                  SizeType row_size,
-                  SizeType col_size>
-        DynamicMatrix_(MatrixBase_<RhsMatrixType, row_size, col_size>
+                  SizeType col_size,
+                  SizeType row_size>
+        DynamicMatrix_(MatrixBase_<RhsMatrixType, col_size, row_size>
                            &&rhs_matrix)
         {
             this->move_initialize_(std::move(rhs_matrix));

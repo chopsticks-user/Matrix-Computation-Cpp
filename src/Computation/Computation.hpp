@@ -6,14 +6,22 @@
 
 namespace linear_algebra
 {
-    namespace matrix
+    template <typename IteratorType, typename RowSizeType>
+    struct MatrixItWrapper
+    {
+        IteratorType begin;
+        IteratorType end;
+        RowSizeType row_size;
+    };
+
+    namespace matrix_helper
     {
         template <typename Matrix1, typename Matrix2>
         auto add(const Matrix1& m1, const Matrix2& m2)
         {
             // utility::expect()
         }
-    } /* matrix */
+    } /* matrix_helper */
 } /* linear_algebra */
 
 #endif /* LINEAR_ALGEBRA_COMPUTATION_HPP */
