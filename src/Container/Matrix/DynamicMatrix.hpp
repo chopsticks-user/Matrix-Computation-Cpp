@@ -15,9 +15,9 @@ namespace zz_no_inc
     {
         typedef MatrixBase_<ElementType> Base_;
 #if ALLOW_NEGATIVE_INDEX
-        typedef utility::SizeType SizeType;
+        typedef matrix::SizeType SizeType;
 #else
-        typedef utility::PositiveSizeType SizeType;
+        typedef matrix::PositiveSizeType SizeType;
 #endif /* ALLOW_NEGATIVE_INDEX */
 
     public:
@@ -73,7 +73,7 @@ namespace zz_no_inc
         DynamicMatrix_ &insert_row_at_(SizeType row_index,
                                        const SeqContainer1D &rhs_container)
         {
-            SizeType rhs_size = utility::get_1d_seq_container_size(rhs_container);
+            SizeType rhs_size = matrix::get_1d_seq_container_size(rhs_container);
             if (rhs_size != this->n_cols__)
                 throw std::range_error("Row sizes mismatch.");
             if (row_index > this->n_rows__ || row_index < 0)
@@ -90,7 +90,7 @@ namespace zz_no_inc
         DynamicMatrix_ &insert_col_at_(SizeType col_index,
                                        const SeqContainer1D &rhs_container)
         {
-            SizeType rhs_size = utility::get_1d_seq_container_size(rhs_container); // might throw
+            SizeType rhs_size = matrix::get_1d_seq_container_size(rhs_container); // might throw
             if (rhs_size != this->n_rows__)
                 throw std::range_error("Column sizes mismatch.");
             if (col_index > this->n_cols__ || col_index < 0)

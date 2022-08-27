@@ -10,14 +10,16 @@
 
 namespace linear_algebra
 {
-    /// Accept negative indices, static matrices are currently not available
     template <typename ElementType = float,
               long templ_row_size = 0,
               long templ_col_size = 0>
     class Matrix
     {
-        typedef utility::SizeType SizeType;
-
+#if ALLOW_NEGATIVE_INDEX
+        typedef zz_no_inc::matrix::SizeType SizeType;
+#else
+        typedef zz_no_inc::matrix::PositiveSizeType SizeType;
+#endif /* ALLOW_NEGATIVE_INDEX */
         typedef zz_no_inc::StaticMatrix_<ElementType,
                                          templ_row_size,
                                          templ_col_size>
@@ -28,17 +30,17 @@ namespace linear_algebra
 
         template <typename ReturnType>
         using DynamicMatrixMethod = typename std::enable_if_t<
-            utility::is_declared_dynamic_matrix<templ_row_size,
-                                                templ_col_size>{},
+            zz_no_inc::matrix::is_declared_dynamic_matrix<templ_row_size,
+                                                          templ_col_size>{},
             ReturnType>;
 
         template <typename ReturnType>
         using StaticMatrixMethod = typename std::enable_if_t<
-            utility::is_declared_static_matrix<templ_row_size,
-                                               templ_col_size>{},
+            zz_no_inc::matrix::is_declared_static_matrix<templ_row_size,
+                                                         templ_col_size>{},
             ReturnType>;
 
-        typedef std::conditional_t<utility::check_if_dynamic_matrix<
+        typedef std::conditional_t<zz_no_inc::matrix::check_if_dynamic_matrix<
                                        templ_row_size,
                                        templ_col_size>(),
                                    DynamicMatrixType,
@@ -153,14 +155,14 @@ namespace linear_algebra
 
         constexpr bool is_dynamic() noexcept
         {
-            return utility::is_declared_dynamic_matrix<templ_row_size,
-                                                       templ_col_size>{};
+            return zz_no_inc::matrix::is_declared_dynamic_matrix<templ_row_size,
+                                                                 templ_col_size>{};
         }
 
         constexpr bool is_static() noexcept
         {
-            return utility::is_declared_static_matrix<templ_row_size,
-                                                      templ_col_size>{};
+            return zz_no_inc::matrix::is_declared_static_matrix<templ_row_size,
+                                                                templ_col_size>{};
         }
 
         template <typename ReturnType = SizeType>
@@ -209,8 +211,8 @@ namespace linear_algebra
         {
             auto copy_ptr = std::make_unique<MatrixType>();
             copy_ptr->data__ = std::move(this->matrix_ptr_->clone_data_());
-            if constexpr (utility::is_declared_dynamic_matrix<templ_row_size,
-                                                              templ_col_size>{})
+            if constexpr (zz_no_inc::matrix::is_declared_dynamic_matrix<templ_row_size,
+                                                                        templ_col_size>{})
                 copy_ptr->set_dimensions_(this->row_size(), this->column_size());
             return std::move(copy_ptr);
         }
@@ -635,7 +637,7 @@ namespace linear_algebra
 
         bool is_summable(SizeType rhs_row_size, SizeType rhs_column_size) const noexcept
         {
-            return utility::check_if_equal_dimensions(
+            return zz_no_inc::matrix::check_if_equal_dimensions(
                 this->row_size(), this->column_size(),
                 rhs_row_size, rhs_column_size);
         }
@@ -676,7 +678,7 @@ namespace linear_algebra
 //     {
 //         if constexpr (utility::check_if_static_matrix<cast_row_size, cast_col_size>())
 //         {
-//             static_assert(utility::check_if_equal_dimensions<templ_row_size, templ_col_size, cast_row_size, cast_col_size>(),
+//             static_assert(zz_no_inc::matrix::check_if_equal_dimensions<templ_row_size, templ_col_size, cast_row_size, cast_col_size>(),
 //                           "Invalid cast, dimensions mismatch.");
 //             return MatrixBase_<CastElementType, cast_row_size, cast_col_size> = this;
 //         }
