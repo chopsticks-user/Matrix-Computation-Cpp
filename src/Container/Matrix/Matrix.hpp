@@ -11,416 +11,385 @@
 namespace linear_algebra
 {
 #if ALLOW_NEGATIVE_INDEX
-    template <typename ElementType = float,
-              zz_no_inc::matrix::SizeType templ_col_size = 0,
-              zz_no_inc::matrix::SizeType templ_row_size = 0>
+    template <typename UnitTp = float,
+              zz_no_inc::matrix::SizeType tpl_col_h = 0,
+              zz_no_inc::matrix::SizeType tpl_row_w = 0>
 #else
-    template <typename ElementType = float,
-              zz_no_inc::matrix::PositiveSizeType templ_col_size = 0,
-              zz_no_inc::matrix::PositiveSizeType templ_row_size = 0>
+    template <typename UnitTp = float,
+              zz_no_inc::matrix::PositiveSizeType tpl_col_h = 0,
+              zz_no_inc::matrix::PositiveSizeType tpl_row_w = 0>
 #endif /* ALLOW_NEGATIVE_INDEX */
     class Matrix
     {
 #if ALLOW_NEGATIVE_INDEX
         typedef zz_no_inc::matrix::SizeType SizeType;
 #else
-        typedef zz_no_inc::matrix::PositiveSizeType SizeType;
+        typedef zz_no_inc::matrix::PositiveSizeType SizeTp;
 #endif /* ALLOW_NEGATIVE_INDEX */
-        typedef zz_no_inc::StaticMatrix_<ElementType,
-                                         templ_col_size,
-                                         templ_row_size>
-            StaticMatrixType;
+        typedef zz_no_inc::StaticMatrix_<UnitTp,
+                                         tpl_col_h,
+                                         tpl_row_w>
+            StcMatTp;
 
-        typedef zz_no_inc::DynamicMatrix_<ElementType>
-            DynamicMatrixType;
+        typedef zz_no_inc::DynamicMatrix_<UnitTp> DycMatTp;
 
-        template <typename ReturnType>
-        using DynamicMatrixMethod = typename std::enable_if_t<
-            zz_no_inc::matrix::is_declared_dynamic_matrix<templ_col_size,
-                                                          templ_row_size>{},
-            ReturnType>;
+        template <typename ReturnTp>
+        using DycMatMethod = typename std::enable_if_t<
+            zz_no_inc::matrix::is_declared_dynamic_matrix<tpl_col_h,
+                                                          tpl_row_w>{},
+            ReturnTp>;
 
-        template <typename ReturnType>
-        using StaticMatrixMethod = typename std::enable_if_t<
-            zz_no_inc::matrix::is_declared_static_matrix<templ_col_size,
-                                                         templ_row_size>{},
-            ReturnType>;
+        template <typename ReturnTp>
+        using StcMatMethod = typename std::enable_if_t<
+            zz_no_inc::matrix::is_declared_static_matrix<tpl_col_h,
+                                                         tpl_row_w>{},
+            ReturnTp>;
 
         typedef std::conditional_t<zz_no_inc::matrix::check_if_dynamic_matrix<
-                                       templ_col_size,
-                                       templ_row_size>(),
-                                   DynamicMatrixType,
-                                   StaticMatrixType>
-            MatrixType;
+                                       tpl_col_h,
+                                       tpl_row_w>(),
+                                   DycMatTp,
+                                   StcMatTp>
+            MatTp;
 
     public:
         const auto &data() const
         {
-            return *(this->matrix_ptr_);
+            return *(this->mat_ptr_);
         }
 
         auto &data()
         {
-            return *(this->matrix_ptr_);
+            return *(this->mat_ptr_);
         }
 
-        Matrix() : matrix_ptr_(std::make_unique<MatrixType>()){};
+        Matrix() : mat_ptr_(std::make_unique<MatTp>()){};
 
 #if DEBUG_LIN_ALG
         ~Matrix() noexcept
         {
             std::cout << "At memory address: <" << std::addressof(*this)
                       << ">, an instance of <Matrix>, whose size of " << sizeof(*this)
-                      << " bytes and contains a pointer at <" << this->matrix_ptr_.get()
+                      << " bytes and contains a pointer at <" << this->mat_ptr_.get()
                       << ">, has been destroyed.\n";
         }
 #else
         ~Matrix() = default;
 #endif
 
-        explicit Matrix(const ElementType &fill_value)
-            : matrix_ptr_(std::make_unique<MatrixType>(fill_value)){};
+        explicit Matrix(const UnitTp &fill_val)
+            : mat_ptr_(std::make_unique<MatTp>(fill_val)){};
 
-        explicit Matrix(SizeType n_rows,
-                        SizeType n_cols,
-                        const ElementType &fill_value = ElementType())
-            : matrix_ptr_(std::make_unique<MatrixType>(n_rows, n_cols, fill_value)){};
+        explicit Matrix(SizeTp n_rows, SizeTp n_cols,
+                        const UnitTp &fill_val = UnitTp())
+            : mat_ptr_(std::make_unique<MatTp>(n_rows, n_cols, fill_val)){};
 
-        Matrix(Matrix &rhs_matrix)
-            : matrix_ptr_(std::make_unique<MatrixType>(rhs_matrix.data())){};
+        Matrix(Matrix &r_mat)
+            : mat_ptr_(std::make_unique<MatTp>(r_mat.data())){};
 
-        template <typename RhsElementType,
-                  SizeType rhs_col_size,
-                  SizeType rhs_row_size>
-        Matrix(Matrix<RhsElementType, rhs_col_size, rhs_row_size>
-                   &rhs_matrix)
-            : matrix_ptr_(std::make_unique<MatrixType>(rhs_matrix.data())){};
+        template <typename RUnitTp, SizeTp r_col_h, SizeTp r_row_w>
+        Matrix(Matrix<RUnitTp, r_col_h, r_row_w> &r_mat)
+            : mat_ptr_(std::make_unique<MatTp>(r_mat.data())){};
 
-        Matrix(Matrix &&rhs_matrix) = default;
+        Matrix(Matrix &&r_mat) = default;
 
-        template <typename RhsElementType,
-                  SizeType rhs_col_size,
-                  SizeType rhs_row_size>
-        Matrix(Matrix<RhsElementType, rhs_col_size, rhs_row_size>
-                   &&rhs_matrix)
-            : matrix_ptr_(std::make_unique<MatrixType>(
-                  std::move(rhs_matrix.data()))){};
+        template <typename RUnitTp, SizeTp r_col_h, SizeTp r_row_w>
+        Matrix(Matrix<RUnitTp, r_col_h, r_row_w> &&r_mat)
+            : mat_ptr_(std::make_unique<MatTp>(std::move(r_mat.data()))){};
 
-        Matrix &operator=(Matrix &rhs_matrix)
+        Matrix &operator=(Matrix &r_mat)
         {
-            this->matrix_ptr_ = std::make_unique<MatrixType>(
-                rhs_matrix.data());
+            this->mat_ptr_ = std::make_unique<MatTp>(r_mat.data());
             return *this;
         }
 
-        template <typename RhsElementType,
-                  SizeType rhs_col_size,
-                  SizeType rhs_row_size>
-        Matrix &operator=(Matrix<RhsElementType, rhs_col_size, rhs_row_size>
-                              &rhs_matrix)
+        template <typename RUnitTp, SizeTp r_col_h, SizeTp r_row_w>
+        Matrix &operator=(Matrix<RUnitTp, r_col_h, r_row_w> &r_mat)
         {
-            this->matrix_ptr_ = std::make_unique<MatrixType>(
-                rhs_matrix.data());
+            this->mat_ptr_ = std::make_unique<MatTp>(r_mat.data());
             return *this;
         }
 
-        Matrix &operator=(Matrix &&rhs_matrix) = default;
+        Matrix &operator=(Matrix &&r_mat) = default;
 
-        template <typename RhsElementType,
-                  SizeType rhs_col_size,
-                  SizeType rhs_row_size>
-        Matrix &operator=(Matrix<RhsElementType, rhs_col_size, rhs_row_size>
-                              &&rhs_matrix)
+        template <typename RUnitTp, SizeTp r_col_h, SizeTp r_row_w>
+        Matrix &operator=(Matrix<RUnitTp, r_col_h, r_row_w> &&r_mat)
         {
-            this->matrix_ptr_ = std::make_unique<MatrixType>(
-                std::move(rhs_matrix.data()));
+            this->mat_ptr_ = std::make_unique<MatTp>(std::move(r_mat.data()));
             return *this;
         }
 
-        friend std::ostream &operator<<(std::ostream &os, const Matrix &matrix)
+        friend std::ostream &operator<<(std::ostream &os, const Matrix &r_mat)
         {
-            os << *(matrix.matrix_ptr_);
+            os << *(r_mat.mat_ptr_);
             return os;
         }
 
-        ElementType &operator()(SizeType row_index, SizeType col_index)
+        UnitTp &operator()(SizeTp row_idx, SizeTp col_idx)
         {
 #if ALLOW_NEGATIVE_INDEX
-            return (*(this->matrix_ptr_))(
-                this->valid_row_index_(row_index),
-                this->valid_col_index(col_index));
+            return (*(this->mat_ptr_))(
+                this->valid_row_index_(row_idx),
+                this->valid_col_index(col_idx));
 #else
-            return (*(this->matrix_ptr_))(row_index, col_index);
+            return (*(this->mat_ptr_))(row_idx, col_idx);
 #endif /* ALLOW_NEGATIVE_INDEX */
         }
 
-        const ElementType &operator()(SizeType row_index, SizeType col_index) const
+        const UnitTp &operator()(SizeTp row_idx, SizeTp col_idx) const
         {
-            return (*(this->matrix_ptr_))(row_index, col_index);
+            return (*(this->mat_ptr_))(row_idx, col_idx);
         }
 
         constexpr bool is_dynamic() noexcept
         {
-            return zz_no_inc::matrix::is_declared_dynamic_matrix<templ_col_size,
-                                                                 templ_row_size>{};
+            return zz_no_inc::matrix::is_declared_dynamic_matrix<tpl_col_h, tpl_row_w>{};
         }
 
         constexpr bool is_static() noexcept
         {
-            return zz_no_inc::matrix::is_declared_static_matrix<templ_col_size,
-                                                                templ_row_size>{};
+            return zz_no_inc::matrix::is_declared_static_matrix<tpl_col_h, tpl_row_w>{};
         }
 
-        template <typename ReturnType = SizeType>
-        constexpr StaticMatrixMethod<ReturnType>
+        template <typename ReturnTp = SizeTp>
+        constexpr StcMatMethod<ReturnTp>
         row_size() const noexcept
         {
-            return templ_row_size;
+            return tpl_row_w;
         }
 
-        template <typename ReturnType = SizeType>
-        DynamicMatrixMethod<ReturnType>
-        row_size() const noexcept
+        template <typename ReturnTp = SizeTp>
+        DycMatMethod<ReturnTp> row_size() const noexcept
         {
-            return this->matrix_ptr_->get_row_size_();
+            return this->mat_ptr_->get_row_size_();
         }
 
-        template <typename ReturnType = SizeType>
-        constexpr StaticMatrixMethod<ReturnType>
-        column_size() const noexcept
+        template <typename ReturnTp = SizeTp>
+        constexpr StcMatMethod<ReturnTp> column_size() const noexcept
         {
-            return templ_col_size;
+            return tpl_col_h;
         }
 
-        template <typename ReturnType = SizeType>
-        DynamicMatrixMethod<ReturnType>
-        column_size() const noexcept
+        template <typename ReturnTp = SizeTp>
+        DycMatMethod<ReturnTp> column_size() const noexcept
         {
-            return this->matrix_ptr_->get_col_size_();
+            return this->mat_ptr_->get_col_size_();
         }
 
-        template <typename ReturnType = bool>
-        constexpr StaticMatrixMethod<ReturnType>
-        is_square() const noexcept
+        template <typename ReturnTp = bool>
+        constexpr StcMatMethod<ReturnTp> is_square() const noexcept
         {
-            return templ_col_size == templ_row_size;
+            return tpl_col_h == tpl_row_w;
         }
 
-        template <typename ReturnType = bool>
-        DynamicMatrixMethod<ReturnType>
-        is_square() const noexcept
+        template <typename ReturnTp = bool>
+        DycMatMethod<ReturnTp> is_square() const noexcept
         {
             return this->row_size() == this->column_size();
         }
 
         auto clone_data() const
         {
-            auto copy_ptr = std::make_unique<MatrixType>();
-            copy_ptr->data__ = std::move(this->matrix_ptr_->clone_data_());
-            if constexpr (zz_no_inc::matrix::is_declared_dynamic_matrix<templ_col_size,
-                                                                        templ_row_size>{})
+            auto copy_ptr = std::make_unique<MatTp>();
+            copy_ptr->data__ = std::move(this->mat_ptr_->clone_data_());
+            if constexpr (zz_no_inc::matrix::is_declared_dynamic_matrix<tpl_col_h,
+                                                                        tpl_row_w>{})
                 copy_ptr->set_dimensions_(this->row_size(), this->column_size());
             return std::move(copy_ptr);
         }
 
         auto clone()
         {
-            return Matrix<ElementType, templ_col_size, templ_row_size>(*this);
+            return Matrix<UnitTp, tpl_col_h, tpl_row_w>(*this);
         }
 
-        auto begin() const noexcept { return &*(this->matrix_ptr_->data__.begin()); };
+        auto begin() const noexcept { return &*(this->mat_ptr_->data__.begin()); };
 
-        auto end() const noexcept { return &*(this->matrix_ptr_->data__.end()); };
+        auto end() const noexcept { return &*(this->mat_ptr_->data__.end()); };
 
-        auto rbegin() const noexcept { return &*(this->matrix_ptr_->data__.rbegin()); };
+        auto rbegin() const noexcept { return &*(this->mat_ptr_->data__.rbegin()); };
 
-        auto rend() const noexcept { return &*(this->matrix_ptr_->data__.rend()); };
+        auto rend() const noexcept { return &*(this->mat_ptr_->data__.rend()); };
 
-        auto cbegin() const noexcept { return &*(this->matrix_ptr_->data__.cbegin()); };
+        auto cbegin() const noexcept { return &*(this->mat_ptr_->data__.cbegin()); };
 
-        auto cend() const noexcept { return &*(this->matrix_ptr_->data__.cend()); };
+        auto cend() const noexcept { return &*(this->mat_ptr_->data__.cend()); };
 
-        auto crbegin() const noexcept { return &*(this->matrix_ptr_->data__.crbegin()); };
+        auto crbegin() const noexcept { return &*(this->mat_ptr_->data__.crbegin()); };
 
-        auto crend() const noexcept { return &*(this->matrix_ptr_->data__.crend()); };
+        auto crend() const noexcept { return &*(this->mat_ptr_->data__.crend()); };
 
-        Matrix &fill(const ElementType &fill_value = ElementType())
+        Matrix &fill(const UnitTp &fill_val = UnitTp())
         {
-            this->matrix_ptr_->fill_all_element_with_(fill_value);
+            this->mat_ptr_->fill_all_element_with_(fill_val);
             return *this;
         }
 
-        Matrix &fill_row(SizeType row_index, const ElementType &fill_value)
+        Matrix &fill_row(SizeTp row_idx, const UnitTp &fill_val)
         {
-            row_index = this->valid_row_index_(row_index);
-            this->matrix_ptr_->fill_value_to_row_(row_index, fill_value);
+            row_idx = this->valid_row_index_(row_idx);
+            this->mat_ptr_->fill_val_to_row_(row_idx, fill_val);
             return *this;
         }
 
-        template <typename SeqContainer1D>
-        Matrix &fill_row(SizeType row_index, const SeqContainer1D &rhs_seq_container)
+        template <typename SeqCtn1D>
+        Matrix &fill_row(SizeTp row_idx, const SeqCtn1D &r_seq_ctn)
         {
-            row_index = this->valid_row_index_(row_index);
-            this->matrix_ptr_->copy_data_to_row_(row_index, rhs_seq_container);
+            row_idx = this->valid_row_index_(row_idx);
+            this->mat_ptr_->copy_data_to_row_(row_idx, r_seq_ctn);
             return *this;
         }
 
-        Matrix &fill_column(SizeType col_index, const ElementType &fill_value)
+        Matrix &fill_column(SizeTp col_idx, const UnitTp &fill_val)
         {
-            col_index = this->valid_col_index(col_index);
-            this->matrix_ptr_->fill_value_to_col_(col_index, fill_value);
+            col_idx = this->valid_col_index(col_idx);
+            this->mat_ptr_->fill_val_to_col_(col_idx, fill_val);
             return *this;
         }
 
-        template <typename SeqContainer1D>
-        Matrix &fill_column(SizeType col_index, const SeqContainer1D &rhs_seq_container)
+        template <typename SeqCtn1D>
+        Matrix &fill_column(SizeTp col_idx, const SeqCtn1D &r_seq_ctn)
         {
-            col_index = this->valid_col_index(col_index);
-            this->matrix_ptr_->copy_data_to_col_(col_index, rhs_seq_container);
+            col_idx = this->valid_col_index(col_idx);
+            this->mat_ptr_->copy_data_to_col_(col_idx, r_seq_ctn);
             return *this;
         }
 
-        template <typename SeqContainer1D, typename ReturnType = Matrix &>
-        DynamicMatrixMethod<ReturnType>
-        append_row(SizeType row_index, const SeqContainer1D &rhs_seq_container)
+        template <typename SeqCtn1D, typename ReturnTp = Matrix &>
+        DycMatMethod<ReturnTp> append_row(SizeTp row_idx, const SeqCtn1D &r_seq_ctn)
         {
-            row_index = this->validate_negative_append_row_index_(row_index);
-            this->matrix_ptr_->insert_row_at_(row_index, rhs_seq_container);
+            row_idx = this->validate_negative_append_row_index_(row_idx);
+            this->mat_ptr_->insert_row_at_(row_idx, r_seq_ctn);
             return *this;
         }
 
-        template <typename SeqContainer1D, typename ReturnType = Matrix &>
-        DynamicMatrixMethod<ReturnType>
-        append_column(SizeType col_index, const SeqContainer1D &rhs_seq_container)
+        template <typename SeqCtn1D, typename ReturnTp = Matrix &>
+        DycMatMethod<ReturnTp> append_column(SizeTp col_idx, const SeqCtn1D &r_seq_ctn)
         {
-            col_index = this->validate_negative_append_col_index_(col_index);
-            this->matrix_ptr_->insert_col_at_(col_index, rhs_seq_container);
+            col_idx = this->validate_negative_append_col_index_(col_idx);
+            this->mat_ptr_->insert_col_at_(col_idx, r_seq_ctn);
             return *this;
         }
 
-        template <typename ReturnType = Matrix &>
-        DynamicMatrixMethod<ReturnType>
-        remove_row(SizeType row_index)
+        template <typename ReturnTp = Matrix &>
+        DycMatMethod<ReturnTp> remove_row(SizeTp row_idx)
         {
-            row_index = this->valid_row_index_(row_index);
-            this->matrix_ptr_->erase_row_at_(row_index);
+            row_idx = this->valid_row_index_(row_idx);
+            this->mat_ptr_->erase_row_at_(row_idx);
             return *this;
         }
 
-        template <typename ReturnType = Matrix &>
-        DynamicMatrixMethod<ReturnType>
-        remove_column(SizeType col_index)
+        template <typename ReturnTp = Matrix &>
+        DycMatMethod<ReturnTp> remove_column(SizeTp col_idx)
         {
-            col_index = this->valid_col_index(col_index);
-            this->matrix_ptr_->erase_col_at_(col_index);
+            col_idx = this->valid_col_index(col_idx);
+            this->mat_ptr_->erase_col_at_(col_idx);
             return *this;
         }
 
-        template <typename ReturnType = Matrix &>
-        DynamicMatrixMethod<ReturnType>
-        resize(SizeType new_col_size, SizeType new_row_size)
+        template <typename ReturnTp = Matrix &>
+        DycMatMethod<ReturnTp> resize(SizeTp new_col_size, SizeTp new_row_size)
         {
-            this->matrix_ptr_->resize_and_fill_default_(new_col_size, new_row_size);
+            this->mat_ptr_->resize_and_fill_default_(new_col_size, new_row_size);
             return *this;
         }
 
-        template <typename ReturnType = Matrix &>
-        DynamicMatrixMethod<ReturnType>
-        clear()
+        template <typename ReturnTp = Matrix &>
+        DycMatMethod<ReturnTp> clear()
         {
-            this->matrix_ptr_->clear_data_();
+            this->mat_ptr_->clear_data_();
             return *this;
         }
 
 #if ENABLE_MATRIX_MATH_FUNCTIONS
-        /// ElementType must have a defined operator+
-        template <typename RhsMatrixType>
-        Matrix operator+(const RhsMatrixType &rhs_matrix)
+        /// UnitTp must have a defined operator+
+        template <typename RhsMatTp>
+        Matrix operator+(const RhsMatTp &r_mat)
         {
-            const SizeType rhs_col_size = rhs_matrix.column_size();
-            const SizeType rhs_row_size = rhs_matrix.row_size();
+            const SizeTp r_col_h = r_mat.column_size();
+            const SizeTp r_row_w = r_mat.row_size();
 
             utility::expect(
-                this->is_summable(rhs_col_size, rhs_row_size),
+                this->is_summable(r_col_h, r_row_w),
                 std::runtime_error(
                     "Dimensions mismatch when performing matrix addition."));
 
-            Matrix<ElementType> result(rhs_col_size, rhs_row_size);
+            Matrix<UnitTp> result(r_col_h, r_row_w);
             auto it1 = this->begin();
-            auto it2 = rhs_matrix.begin();
+            auto it2 = r_mat.begin();
             auto res_it = result.begin();
             auto res_it_end = result.end();
 
-            SizeType i = 0;
+            SizeTp i = 0;
             while ((res_it + i) != res_it_end)
                 *(res_it + (i++)) = *(it1 + i) + *(it2 + i);
 
             return result;
         }
 
-        /// ElementType must have a defined operator-
-        template <typename RhsMatrixType>
-        Matrix operator-(const RhsMatrixType &rhs_matrix)
+        /// UnitTp must have a defined operator-
+        template <typename RhsMatTp>
+        Matrix operator-(const RhsMatTp &r_mat)
         {
-            const SizeType rhs_col_size = rhs_matrix.column_size();
-            const SizeType rhs_row_size = rhs_matrix.row_size();
+            const SizeTp r_col_h = r_mat.column_size();
+            const SizeTp r_row_w = r_mat.row_size();
 
             utility::expect(
-                this->is_summable(rhs_col_size, rhs_row_size),
+                this->is_summable(r_col_h, r_row_w),
                 std::runtime_error(
                     "Dimensions mismatch when performing matrix subtraction."));
 
-            Matrix<ElementType> result(rhs_col_size, rhs_row_size);
+            Matrix<UnitTp> result(r_col_h, r_row_w);
             auto it1 = this->begin();
-            auto it2 = rhs_matrix.begin();
+            auto it2 = r_mat.begin();
             auto res_it = result.begin();
             auto res_it_end = result.end();
 
-            SizeType i = 0;
+            SizeTp i = 0;
             while ((res_it + i) != res_it_end)
                 *(res_it + (i++)) = *(it1 + i) - *(it2 + i);
 
             return result;
         }
 
-        /// ElementType must have a defined operator*
-        template <typename RhsMatrixType>
-        Matrix operator*(const RhsMatrixType &rhs_matrix)
+        /// UnitTp must have a defined operator*
+        template <typename RhsMatTp>
+        Matrix operator*(const RhsMatTp &r_mat)
         {
-            const SizeType col_size = this->column_size();
-            const SizeType rhs_col_size = rhs_matrix.column_size();
-            const SizeType rhs_row_size = rhs_matrix.row_size();
+            const SizeTp col_size = this->column_size();
+            const SizeTp r_col_h = r_mat.column_size();
+            const SizeTp r_row_w = r_mat.row_size();
 
             utility::expect(
-                this->is_multipliable(rhs_col_size),
+                this->is_multipliable(r_col_h),
                 std::runtime_error(
                     "Dimensions mismatch when performing matrix multiplication."));
 
-            Matrix<ElementType> result(col_size, rhs_row_size);
+            Matrix<UnitTp> result(col_size, r_row_w);
             auto it1 = this->begin();
-            auto it2 = rhs_matrix.begin();
+            auto it2 = r_mat.begin();
             auto res_it = result.begin();
 
-            for (SizeType i = 0; i < col_size; i++)
-                for (SizeType j = 0; j < rhs_row_size; j++)
-                    for (SizeType k = 0; k < rhs_col_size; k++)
-                        *(res_it + i * rhs_row_size + j) +=
-                            (*(it1 + i * rhs_col_size + k)) *
-                            (*(it2 + k * rhs_row_size + j));
+            for (SizeTp i = 0; i < col_size; i++)
+                for (SizeTp j = 0; j < r_row_w; j++)
+                    for (SizeTp k = 0; k < r_col_h; k++)
+                        *(res_it + i * r_row_w + j) +=
+                            (*(it1 + i * r_col_h + k)) *
+                            (*(it2 + k * r_row_w + j));
 
             return result;
         }
 
-        /// ElementType must have a defined operator*
-        Matrix operator*(const ElementType &scalar)
+        /// UnitTp must have a defined operator*
+        Matrix operator*(const UnitTp &scalar)
         {
             if (scalar == 1)
                 return *this;
 
-            static_assert(std::is_arithmetic_v<ElementType>,
-                          "ElementType must be arithmetic type.");
+            static_assert(std::is_arithmetic_v<UnitTp>,
+                          "UnitTp must be arithmetic type.");
 
-            Matrix<ElementType> result(this->column_size(), this->row_size());
+            Matrix<UnitTp> result(this->column_size(), this->row_size());
 
             if (scalar == 0)
                 return result;
@@ -429,7 +398,7 @@ namespace linear_algebra
             auto res_it = result.begin();
             auto res_it_end = result.end();
 
-            SizeType i = 0;
+            SizeTp i = 0;
             while ((res_it + i) != res_it_end)
             {
                 *(res_it + i) = (*(it + i)) * (scalar);
@@ -446,36 +415,75 @@ namespace linear_algebra
             return true;
         }
 
-        ElementType det()
+        bool is_invertible()
         {
-            static_assert(std::is_arithmetic_v<ElementType>,
+            return !this->is_singular();
+        }
+
+        bool is_symmetric()
+        {
+            return true;
+        }
+
+        bool is_definite()
+        {
+            return true;
+        }
+
+        bool is_orthogonal()
+        {
+            return true;
+        }
+
+        UnitTp det()
+        {
+            static_assert(std::is_arithmetic_v<UnitTp>,
                           "Scalar must be of any arithmetic type.");
 
             utility::expect(this->is_square() == true,
                             std::runtime_error(
                                 "Taking power of a non-square matrix is not allowed."));
 
-            return ElementType();
+            return UnitTp();
         }
+
+        UnitTp norm() { return 0; }
+
+        UnitTp trace() { return 0; }
 
         Matrix identity()
         {
             /// exception: std::complex
-            static_assert(std::is_arithmetic_v<ElementType>,
-                          "ElementType must be of any arithmetic type.");
+            static_assert(std::is_arithmetic_v<UnitTp>,
+                          "UnitTp must be of any arithmetic type.");
 
             utility::expect(this->is_square() == true,
                             std::runtime_error(
                                 "Cannot find an identity matrix of a non-square matrix."));
 
-            SizeType col_size = this->column_size();
-            Matrix<ElementType> identity_matrix(col_size, col_size);
+            SizeTp col_size = this->column_size();
+            Matrix<UnitTp> identity_matrix(col_size, col_size);
             auto it = identity_matrix.begin();
 
-            for (SizeType i = 0; i < col_size; ++i)
+            for (SizeTp i = 0; i < col_size; ++i)
                 *(it + i * (col_size + 1)) = 1;
 
             return identity_matrix;
+        }
+
+        Matrix diagonal()
+        {
+            return *this;
+        }
+
+        Matrix lower_triangle()
+        {
+            return *this;
+        }
+
+        Matrix upper_triangle()
+        {
+            return *this;
         }
 
         Matrix inverse()
@@ -483,9 +491,9 @@ namespace linear_algebra
             return *this;
         }
 
-        Matrix sub(SizeType rm_col_index, SizeType rm_row_index)
+        Matrix sub(SizeTp rm_col_index, SizeTp rm_row_index)
         {
-            Matrix<ElementType> sub_matrix(std::move(this->clone()));
+            Matrix<UnitTp> sub_matrix(std::move(this->clone()));
             sub_matrix.remove_column(rm_col_index);
             sub_matrix.remove_row(rm_row_index);
             return sub_matrix;
@@ -511,77 +519,75 @@ namespace linear_algebra
             if (scalar == -1)
                 return this->inverse();
 
-            const SizeType col_size = this->column_size();
-            const SizeType row_size = this->row_size();
-            Matrix<ElementType> result(*this);
+            const SizeTp col_size = this->column_size();
+            const SizeTp row_size = this->row_size();
+            Matrix<UnitTp> result(*this);
 
-            for (SizeType i = 0; i < scalar - 1; i++)
+            for (SizeTp i = 0; i < scalar - 1; i++)
                 result = std::move(result * result);
             return result;
         }
 
         /// Double-transposing on one matrix is not available.
-        Matrix<ElementType> transpose()
+        Matrix<UnitTp> transpose()
         {
-            SizeType t_col_size = this->row_size();
-            SizeType t_row_size = this->column_size();
+            SizeTp t_col_size = this->row_size();
+            SizeTp t_row_size = this->column_size();
 
-            Matrix<ElementType> result(t_col_size, t_row_size);
+            Matrix<UnitTp> result(t_col_size, t_row_size);
             auto it = this->begin();
             auto res_it = result.begin();
 
-            for (SizeType i = 0; i < t_col_size; ++i)
-                for (SizeType j = 0; j < t_row_size; ++j)
-                    // result(i, j) = (*this)(j, i);
+            for (SizeTp i = 0; i < t_col_size; ++i)
+                for (SizeTp j = 0; j < t_row_size; ++j)
                     *(res_it + i * t_row_size + j) = *(it + j * t_col_size + i);
             return result;
         }
 
         template <typename ScalarType>
-        Matrix &row_addition(SizeType row_index, ScalarType value)
+        Matrix &row_addition(SizeTp row_idx, ScalarType val)
         {
             static_assert(std::is_arithmetic_v<ScalarType>,
                           "Scalar must be of any arithmetic type.");
 
-            row_index = this->valid_row_index_(row_index);
-            SizeType row_size = this->row_size();
-            auto it = this->begin() + row_index * row_size;
-            auto it_end = this->begin() + row_index * row_size + row_size;
+            row_idx = this->valid_row_index_(row_idx);
+            SizeTp row_size = this->row_size();
+            auto it = this->begin() + row_idx * row_size;
+            auto it_end = this->begin() + row_idx * row_size + row_size;
 
             while (it != it_end)
-                *(it++) += value;
+                *(it++) += val;
 
             return *this;
         }
 
         template <typename ScalarType>
-        Matrix &row_multiplication(SizeType row_index, ScalarType value)
+        Matrix &row_multiplication(SizeTp row_idx, ScalarType val)
         {
             static_assert(std::is_arithmetic_v<ScalarType>,
                           "Scalar must be of any arithmetic type.");
 
-            row_index = this->valid_row_index_(row_index);
-            SizeType row_size = this->row_size();
-            auto it = this->begin() + row_index * row_size;
-            auto it_end = this->begin() + row_index * row_size + row_size;
+            row_idx = this->valid_row_index_(row_idx);
+            SizeTp row_size = this->row_size();
+            auto it = this->begin() + row_idx * row_size;
+            auto it_end = this->begin() + row_idx * row_size + row_size;
 
             while (it != it_end)
-                (*(it++)) *= value;
+                (*(it++)) *= val;
 
             return *this;
         }
 
-        Matrix &row_swap(SizeType row_index1, SizeType row_index2)
+        Matrix &row_switching(SizeTp row_idx1, SizeTp row_idx2)
         {
+            row_idx1 = this->valid_row_index_(row_idx1);
+            row_idx2 = this->valid_row_index_(row_idx2);
 
-            row_index1 = this->valid_row_index_(row_index1);
-            row_index2 = this->valid_row_index_(row_index2);
+            SizeTp row_size = this->row_size();
+            auto it1 = this->begin() + row_idx1 * row_size;
+            auto it2 = this->begin() + row_idx2 * row_size;
 
-            SizeType row_size = this->row_size();
-            auto it1 = this->begin() + row_index1 * row_size;
-            auto it2 = this->begin() + row_index2 * row_size;
-
-            for (SizeType i = 0; i < row_size; i++)
+            for (SizeTp i = 0; i < row_size; i++)
                 std::swap(*(it1 + i), *(it2 + i));
 
             return *this;
@@ -589,94 +595,94 @@ namespace linear_algebra
 #endif /* MATRIX_MATH_FUNCTIONS */
 
     private:
-        std::unique_ptr<MatrixType> matrix_ptr_;
+        std::unique_ptr<MatTp> mat_ptr_;
 
-        /// Need to check if the returned row_index is still less than 0.
-        SizeType valid_row_index_(SizeType row_index) const
+        /// Need to check if the returned row_idx is still less than 0.
+        SizeTp valid_row_index_(SizeTp row_idx) const
         {
 #if ALLOW_NEGATIVE_INDEX
-            if (row_index < 0)
-                row_index += this->row_size();
+            if (row_idx < 0)
+                row_idx += this->row_size();
 #endif /* ALLOW_NEGATIVE_INDEX */
-            utility::expect(row_index >= 0 && row_index < this->row_size(),
+            utility::expect(row_idx >= 0 && row_idx < this->row_size(),
                             std::range_error("Row index out of range."));
-            return row_index;
+            return row_idx;
         }
 
-        SizeType valid_col_index(SizeType col_index) const
+        SizeTp valid_col_index(SizeTp col_idx) const
         {
 #if ALLOW_NEGATIVE_INDEX
-            if (col_index < 0)
-                col_index += this->column_size();
+            if (col_idx < 0)
+                col_idx += this->column_size();
 #endif /* ALLOW_NEGATIVE_INDEX */
-            utility::expect(col_index >= 0 && col_index < this->column_size(),
+            utility::expect(col_idx >= 0 && col_idx < this->column_size(),
                             std::range_error("Column index out of range."));
-            return col_index;
+            return col_idx;
         }
 
-        SizeType validate_negative_append_row_index_(SizeType row_index) const
+        SizeTp validate_negative_append_row_index_(SizeTp row_idx) const
         {
-            return row_index < 0 ? this->column_size() + row_index + 1 : row_index;
+            return row_idx < 0 ? this->column_size() + row_idx + 1 : row_idx;
         }
 
-        SizeType validate_negative_append_col_index_(SizeType col_index) const
+        SizeTp validate_negative_append_col_index_(SizeTp col_idx) const
         {
-            return col_index < 0 ? this->row_size() + col_index + 1 : col_index;
+            return col_idx < 0 ? this->row_size() + col_idx + 1 : col_idx;
         }
 
-        bool is_multipliable(SizeType rhs_col_size) const noexcept
+        bool is_multipliable(SizeTp r_col_h) const noexcept
         {
-            return this->row_size() == rhs_col_size;
+            return this->row_size() == r_col_h;
         }
 
-        bool is_summable(SizeType rhs_col_size, SizeType rhs_row_size) const noexcept
+        bool is_summable(SizeTp r_col_h, SizeTp r_row_w) const noexcept
         {
             return zz_no_inc::matrix::check_if_equal_dimensions(
                 this->column_size(), this->row_size(),
-                rhs_col_size, rhs_row_size);
+                r_col_h, r_row_w);
         }
     };
 }
 
 // /// use move it_begin, it_end
-// template <typename RhsElementType,
-//           SizeType rhs_row_size,
-//           SizeType rhs_col_size>
-// Matrix(Matrix<RhsElementType, rhs_row_size, rhs_col_size> &&rhs_matrix)
-//     : matrix_ptr_(std::make_unique<MatrixType>(
-//           std::move(*(rhs_matrix.clone_data()))))
+// template <typename RUnitTp,
+//           SizeType r_row_w,
+//           SizeType r_col_h>
+// Matrix(Matrix<RUnitTp, r_row_w, r_col_h> &&r_mat)
+//     : mat_ptr_(std::make_unique<MatTp>(
+//           std::move(*(r_mat.clone_data()))))
 // {
-//     if constexpr (utility::is_declared_static_matrix<templ_row_size, templ_col_size>{})
+//     if constexpr (utility::is_declared_static_matrix<tpl_row_w, tpl_col_h>{})
 //     {
-//         if constexpr (utility::is_declared_static_matrix<rhs_row_size, rhs_col_size>{})
+//         if constexpr (utility::is_declared_static_matrix<r_row_w, r_col_h>{})
 //             static_assert("Matrix dimensions mismatch.");
-//         else if (templ_row_size != rhs_matrix.row_size() ||
-//                  templ_col_size != rhs_matrix.column_size())
+//         else if (tpl_row_w != r_mat.row_size() ||
+//                  tpl_col_h != r_mat.column_size())
 //             throw std::range_error("Matrix dimensions mismatch.");
 //         else
 //         {
-//             this->matrix_ptr_ = std::make_unique<MatrixType>();
-//             std::move(rhs_matrix.begin(), rhs_matrix.end(), this->begin());
+//             this->mat_ptr_ = std::make_unique<MatTp>();
+//             std::move(r_mat.begin(), r_mat.end(), this->begin());
 //         }
 //     }
 // }
 
-// template <typename CastElementType,
+// template <typename CastUnitTp,
 //           SizeType cast_row_size,
 //           SizeType cast_col_size>
-// operator MatrixBase_<CastElementType,
+// operator MatrixBase_<CastUnitTp,
 //                      cast_row_size,
 //                      cast_col_size>() const
 // {
-//     if constexpr (utility::check_if_static_matrix<templ_row_size, templ_col_size>())
+//     if constexpr (utility::check_if_static_matrix<tpl_row_w, tpl_col_h>())
 //     {
 //         if constexpr (utility::check_if_static_matrix<cast_row_size, cast_col_size>())
 //         {
-//             static_assert(zz_no_inc::matrix::check_if_equal_dimensions<templ_row_size, templ_col_size, cast_row_size, cast_col_size>(),
+//             static_assert(zz_no_inc::matrix::check_if_equal_dimensions<tpl_row_w, tpl_col_h, cast_row_size, cast_col_size>(),
 //                           "Invalid cast, dimensions mismatch.");
-//             return MatrixBase_<CastElementType, cast_row_size, cast_col_size> = this;
+//             return MatrixBase_<CastUnitTp, cast_row_size, cast_col_size> = this;
 //         }
-//         return MatrixBase_<CastElementType> = this;
+//         return MatrixBase_<CastUnitTp> = this;
 //     }
 // }
 

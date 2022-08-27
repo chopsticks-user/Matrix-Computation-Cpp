@@ -21,8 +21,8 @@ int main()
             Matrix<int> m1(n, n, -112872);
 
             Timer t1;
-            std::cout << m1.identity() << '\n';
-            // m1.identity();
+            // std::cout << m1.identity() << '\n';
+            std::cout << m1 + m1 << '\n';
         }
 
         {
