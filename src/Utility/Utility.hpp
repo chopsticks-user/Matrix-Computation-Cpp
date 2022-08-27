@@ -2,7 +2,6 @@
 #define ULTILITY_HPP
 
 #include "Expect.hpp"
-#include "Require.hpp"
 
 #include <type_traits>
 #include <iostream>
@@ -11,6 +10,16 @@
 
 namespace utility
 {
+    typedef long SizeType;
+    typedef size_t PositiveSizeType;
+
+    using mic = std::chrono::microseconds;
+    using mil = std::chrono::milliseconds;
+    using sec = std::chrono::seconds;
+    using min = std::chrono::minutes;
+    using hr = std::chrono::hours;
+
+    template <typename DurationType = mic>
     class Timer
     {
     private:
@@ -20,28 +29,33 @@ namespace utility
     public:
         Timer()
         {
+            if (std::is_same_v<DurationType, mic>)
+                this->time_unit = "μs";
+            else if (std::is_same_v<DurationType, mil>)
+                this->time_unit = "ms";
+
+            else if (std::is_same_v<DurationType, sec>)
+                this->time_unit = "s";
+
+            else if (std::is_same_v<DurationType, min>)
+                this->time_unit = "mins";
+
+            else if (std::is_same_v<DurationType, hr>)
+                this->time_unit = "hrs";
+            else
+                static_assert("Unkown time unit.");
+
             this->start = std::chrono::high_resolution_clock::now();
-            this->time_unit = "milliseconds";
         }
-        Timer(std::string &&time_unit)
-        {
-            this->start = std::chrono::high_resolution_clock::now();
-            if (time_unit == "microseconds")
-            {
-                this->time_unit = "microseconds";
-                return;
-            }
-            this->time_unit = "milliseconds";
-        }
+
         ~Timer()
         {
             auto stop = std::chrono::high_resolution_clock::now();
-            if (this->time_unit == "microseconds")
-            {
-                std::cout << "\nTime elapsed: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << " microseconds\n";
-                return;
-            }
-            std::cout << "\nTime elapsed: " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << " ms\n";
+            std::cout << "Time elapsed: "
+                      << std::chrono::duration_cast<
+                             DurationType>(stop - start)
+                             .count()
+                      << ' ' << this->time_unit << "\n";
         }
     };
 
@@ -52,8 +66,6 @@ namespace utility
         std::uniform_int_distribution<long long> dist(min, max);
         return dist(rng);
     }
-
-    typedef size_t SizeType;
 
     template <typename T>
     constexpr bool is_lvalue(T &&)
@@ -167,7 +179,7 @@ namespace utility
     }
 
     bool check_if_multipliable(SizeType row_size1, SizeType col_size1,
-                                   SizeType row_size2, SizeType col_size2)
+                               SizeType row_size2, SizeType col_size2)
     {
         return row_size1 == col_size2 && col_size1 == row_size2;
     }
@@ -179,9 +191,9 @@ namespace utility
     {
     };
 
-    template <SizeType row_size, SizeType col_size>
-    using is_declared_dynamic_matrix_v =
-        typename is_declared_dynamic_matrix<row_size, col_size>::value;
+    // template <SizeType row_size, SizeType col_size>
+    // using is_declared_dynamic_matrix_v =
+    //     typename is_declared_dynamic_matrix<row_size, col_size>::value;
 
     template <SizeType row_size, SizeType col_size>
     struct is_declared_static_matrix
@@ -190,9 +202,9 @@ namespace utility
     {
     };
 
-    template <SizeType row_size, SizeType col_size>
-    using is_declared_static_matrix_v =
-        typename is_declared_static_matrix<row_size, col_size>::value;
+    // template <SizeType row_size, SizeType col_size>
+    // using is_declared_static_matrix_v =
+    //     typename is_declared_static_matrix<row_size, col_size>::value;
 
     template <typename ContainerItType>
     void print_1d_container(ContainerItType it_begin, ContainerItType it_end)

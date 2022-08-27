@@ -9,6 +9,7 @@
 
 using namespace linear_algebra;
 using namespace zz_no_inc;
+using utility::Timer;
 
 class A
 {
@@ -33,32 +34,42 @@ constexpr bool test(T &&x)
 
 int main()
 {
-    // 10000 x 10000
-    // dynamic: same-type-cctor: <m, 227ms> vs <v, 156ms>
-    // dynamic: same-type-mctor: <m, 109ms> vs <v, 103ms>, default
-    // dynamic: same-type-cp=:   <m, 227ms> vs <v, 156ms>
-    // dynamic: same-type-mv=:   <m, 106ms> vs <v, 101ms>, default
 
     try
     {
-        Matrix<int> m1(10000, 10000, 69);
-        Matrix<int, 10000, 10000> m2;
-        auto *t1 = new utility::Timer;
-        m2 = std::move(m1);
-        std::cout << m2(10, 10) << '\n';
-        // auto md = m2.data();
-        delete t1;
+        {
+            int sum = 0;
+            Matrix<int> m1(1000, 1000, 10);
+            utility::Timer t1;
+            for (auto it = m1.begin(); it != m1.end(); ++it)
+            {
+                sum++;
+                *it;
+            }
+            // for (auto i = 0; i < 10000; i++)
+            //     for (auto j = 0; j < 10000; j++)
+            //     {
+            //         sum++;
+            //         m1(i, j);
+            //     }
+            std::cout << sum << '\n';
+        }
 
-        std::vector<int> v1(100000000, 69);
-        std::vector<int> v2;
-        auto *t2 = new utility::Timer;
-        v2 = std::move(v1);
-        delete t2;
-
-        // auto p = std::make_unique<int>();
-        // *p = 5;
-        // int a = *p;
-        // std::cout << *p << '\n';
+        {
+            int sum = 0;
+            std::vector<int> v1(1000000, 10);
+            utility::Timer t2;
+            for (auto i = 0; i < 1000000; i++)
+            {
+                sum++;
+                v1[i];
+            }
+            // for (auto it = v1.begin(); it != v1.end(); ++it)
+            // {
+            //     sum++;
+            // }
+            std::cout << sum << '\n';
+        }
     }
     catch (const std::exception &e)
     {

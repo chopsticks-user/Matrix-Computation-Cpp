@@ -1,6 +1,8 @@
 #ifndef LIN_ALG_CONTAINER_BASEMATRIX_HPP
 #define LIN_ALG_CONTAINER_BASEMATRIX_HPP
 
+#include "../../Config.hpp"
+
 #include "../../Algorithm/Algorithm.hpp"
 #include "../../Utility/Utility.hpp"
 
@@ -13,16 +15,15 @@
 
 namespace zz_no_inc
 {
-    /**
-     * @brief Matrix Base.
-     *
-     * @tparam ElementType
-     * @tparam templ_row_size
-     * @tparam templ_col_size
-     */
+#if ALLOW_NEGATIVE_INDEX
     template <typename ElementType,
               utility::SizeType templ_row_size = 0,
               utility::SizeType templ_col_size = 0>
+#else
+    template <typename ElementType,
+              utility::PositiveSizeType templ_row_size = 0,
+              utility::PositiveSizeType templ_col_size = 0>
+#endif /* ALLOW_NEGATIVE_INDEX */
     struct MatrixBase_
     {
         typedef utility::SizeType SizeType;
@@ -179,16 +180,28 @@ namespace zz_no_inc
             data__ = std::move(rhs_matrix.data__);
         }
 
-        /// Safety check is handled by either std::array or std::vector.
         ElementType &operator()(SizeType row_index, SizeType col_index)
         {
-            return data__.at(row_index * n_cols__ + col_index);
+#if ALLOW_NEGATIVE_INDEX
+            return data__[row_index * n_cols__ + col_index];
+#else
+            utility::expect(row_index >= 0 && row_index < n_rows__ &&
+                                col_index >= 0 && col_index < n_cols__,
+                            std::range_error("Index out of range."));
+            return data__[row_index * n_cols__ + col_index];
+#endif /* ALLOW_NEGATIVE_INDEX */
         }
 
-        /// Safety check is handled by either std::array or std::vector.
         const ElementType &operator()(SizeType row_index, SizeType col_index) const
         {
-            return data__.at(row_index * n_cols__ + col_index);
+#if ALLOW_NEGATIVE_INDEX
+            return data__[row_index * n_cols__ + col_index];
+#else
+            utility::expect(row_index >= 0 && row_index < n_rows__ &&
+                                col_index >= 0 && col_index < n_cols__,
+                            std::range_error("Index out of range."));
+            return data__[row_index * n_cols__ + col_index];
+#endif /* ALLOW_NEGATIVE_INDEX */
         }
 
         /// No-throw if ElementType can be printed by std::cout

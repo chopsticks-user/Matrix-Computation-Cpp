@@ -1,9 +1,10 @@
 #ifndef LIN_ALG_CONTAINER_MATRIX_HPP
 #define LIN_ALG_CONTAINER_MATRIX_HPP
 
+#include "../../Config.hpp"
+
 #include "DynamicMatrix.hpp"
 #include "StaticMatrix.hpp"
-#include "Row.hpp"
 
 #include <memory>
 
@@ -15,7 +16,7 @@ namespace linear_algebra
               long templ_col_size = 0>
     class Matrix
     {
-        typedef long SizeType;
+        typedef utility::SizeType SizeType;
 
         typedef zz_no_inc::StaticMatrix_<ElementType,
                                          templ_row_size,
@@ -57,12 +58,17 @@ namespace linear_algebra
 
         Matrix() : matrix_ptr_(std::make_unique<MatrixType>()){};
 
+#if DEBUG_LIN_ALG
         ~Matrix() noexcept
         {
-            std::cout << "At memory address: " << std::addressof(*this)
-                      << ", an instance of Matrix, whose size of " << sizeof(*this)
-                      << " bytes, has been destroyed.\n";
+            std::cout << "At memory address: <" << std::addressof(*this)
+                      << ">, an instance of <Matrix>, whose size of " << sizeof(*this)
+                      << " bytes and contains a pointer at <" << this->matrix_ptr_.get()
+                      << ">, has been destroyed.\n";
         }
+#else
+        ~Matrix() = default;
+#endif
 
         explicit Matrix(const ElementType &fill_value)
             : matrix_ptr_(std::make_unique<MatrixType>(fill_value)){};
@@ -95,7 +101,7 @@ namespace linear_algebra
         Matrix &operator=(Matrix &rhs_matrix)
         {
             this->matrix_ptr_ = std::make_unique<MatrixType>(
-                std::move(rhs_matrix.data()));
+                rhs_matrix.data());
             return *this;
         }
 
@@ -131,9 +137,13 @@ namespace linear_algebra
 
         ElementType &operator()(SizeType row_index, SizeType col_index)
         {
+#if ALLOW_NEGATIVE_INDEX
             return (*(this->matrix_ptr_))(
-                this->validate_negative_row_index_(row_index),
-                this->validate_negative_col_index_(col_index));
+                this->valid_row_index_(row_index),
+                this->valid_col_index(col_index));
+#else
+            return (*(this->matrix_ptr_))(row_index, col_index);
+#endif /* ALLOW_NEGATIVE_INDEX */
         }
 
         const ElementType &operator()(SizeType row_index, SizeType col_index) const
@@ -141,31 +151,58 @@ namespace linear_algebra
             return (*(this->matrix_ptr_))(row_index, col_index);
         }
 
-        constexpr bool is_dynamic_matrix()
+        constexpr bool is_dynamic() noexcept
         {
             return utility::is_declared_dynamic_matrix<templ_row_size,
                                                        templ_col_size>{};
         }
 
-        constexpr bool is_static_matrix()
+        constexpr bool is_static() noexcept
         {
             return utility::is_declared_static_matrix<templ_row_size,
                                                       templ_col_size>{};
         }
 
-        bool is_square_matrix() const
+        template <typename ReturnType = SizeType>
+        constexpr StaticMatrixMethod<ReturnType>
+        row_size() const noexcept
         {
-            return this->row_size() == this->column_size();
+            return templ_row_size;
         }
 
-        SizeType row_size() const
+        template <typename ReturnType = SizeType>
+        DynamicMatrixMethod<ReturnType>
+        row_size() const noexcept
         {
             return this->matrix_ptr_->get_row_size_();
         }
 
-        SizeType column_size() const
+        template <typename ReturnType = SizeType>
+        constexpr StaticMatrixMethod<ReturnType>
+        column_size() const noexcept
+        {
+            return templ_col_size;
+        }
+
+        template <typename ReturnType = SizeType>
+        DynamicMatrixMethod<ReturnType>
+        column_size() const noexcept
         {
             return this->matrix_ptr_->get_col_size_();
+        }
+
+        template <typename ReturnType = bool>
+        constexpr StaticMatrixMethod<ReturnType>
+        is_square() const noexcept
+        {
+            return templ_row_size == templ_col_size;
+        }
+
+        template <typename ReturnType = bool>
+        DynamicMatrixMethod<ReturnType>
+        is_square() const noexcept
+        {
+            return this->row_size() == this->column_size();
         }
 
         auto clone_data() const
@@ -178,11 +215,9 @@ namespace linear_algebra
             return std::move(copy_ptr);
         }
 
-        auto clone() const
+        auto clone()
         {
-            Matrix<ElementType, templ_row_size, templ_col_size> copy_matrix;
-            copy_matrix.matrix_ptr_ = this->clone_data();
-            return copy_matrix;
+            return Matrix<ElementType, templ_row_size, templ_col_size>(*this);
         }
 
         auto begin() const noexcept { return this->matrix_ptr_->data__.begin(); };
@@ -209,7 +244,7 @@ namespace linear_algebra
 
         Matrix &fill_row(SizeType row_index, const ElementType &fill_value)
         {
-            row_index = this->validate_negative_row_index_(row_index);
+            row_index = this->valid_row_index_(row_index);
             this->matrix_ptr_->fill_value_to_row_(row_index, fill_value);
             return *this;
         }
@@ -217,14 +252,14 @@ namespace linear_algebra
         template <typename SeqContainer1D>
         Matrix &fill_row(SizeType row_index, const SeqContainer1D &rhs_seq_container)
         {
-            row_index = this->validate_negative_row_index_(row_index);
+            row_index = this->valid_row_index_(row_index);
             this->matrix_ptr_->copy_data_to_row_(row_index, rhs_seq_container);
             return *this;
         }
 
         Matrix &fill_column(SizeType col_index, const ElementType &fill_value)
         {
-            col_index = this->validate_negative_col_index_(col_index);
+            col_index = this->valid_col_index(col_index);
             this->matrix_ptr_->fill_value_to_col_(col_index, fill_value);
             return *this;
         }
@@ -232,7 +267,7 @@ namespace linear_algebra
         template <typename SeqContainer1D>
         Matrix &fill_column(SizeType col_index, const SeqContainer1D &rhs_seq_container)
         {
-            col_index = this->validate_negative_col_index_(col_index);
+            col_index = this->valid_col_index(col_index);
             this->matrix_ptr_->copy_data_to_col_(col_index, rhs_seq_container);
             return *this;
         }
@@ -259,7 +294,7 @@ namespace linear_algebra
         DynamicMatrixMethod<ReturnType>
         remove_row(SizeType row_index)
         {
-            row_index = this->validate_negative_row_index_(row_index);
+            row_index = this->valid_row_index_(row_index);
             this->matrix_ptr_->erase_row_at_(row_index);
             return *this;
         }
@@ -268,7 +303,7 @@ namespace linear_algebra
         DynamicMatrixMethod<ReturnType>
         remove_column(SizeType col_index)
         {
-            col_index = this->validate_negative_col_index_(col_index);
+            col_index = this->valid_col_index(col_index);
             this->matrix_ptr_->erase_col_at_(col_index);
             return *this;
         }
@@ -288,8 +323,8 @@ namespace linear_algebra
             this->matrix_ptr_->clear_data_();
             return *this;
         }
-        ///------------------------------------Math-related methods-------------------------------------------------
 
+#if ENABLE_MATRIX_MATH_FUNCTIONS
         /// ElementType must have a defined operator+
         template <typename RhsMatrixType>
         Matrix operator+(const RhsMatrixType &rhs_matrix)
@@ -299,7 +334,8 @@ namespace linear_algebra
 
             utility::expect(
                 this->is_summable(rhs_row_size, rhs_col_size),
-                std::runtime_error("Dimensions mismatch when performing matrix addition."));
+                std::runtime_error(
+                    "Dimensions mismatch when performing matrix addition."));
 
             Matrix<ElementType> result(rhs_row_size, rhs_col_size);
             for (SizeType i = 0; i < rhs_row_size; i++)
@@ -317,7 +353,8 @@ namespace linear_algebra
 
             utility::expect(
                 this->is_summable(rhs_row_size, rhs_col_size),
-                std::runtime_error("Dimensions mismatch when performing matrix subtraction."));
+                std::runtime_error(
+                    "Dimensions mismatch when performing matrix subtraction."));
 
             Matrix<ElementType> result(rhs_row_size, rhs_col_size);
             for (SizeType i = 0; i < rhs_row_size; i++)
@@ -337,7 +374,8 @@ namespace linear_algebra
 
             utility::expect(
                 this->is_multipliable(rhs_row_size),
-                std::runtime_error("Dimensions mismatch when performing matrix multiplication."));
+                std::runtime_error(
+                    "Dimensions mismatch when performing matrix multiplication."));
 
             Matrix<ElementType> result(row_size, rhs_col_size);
             for (SizeType i = 0; i < row_size; i++)
@@ -369,9 +407,11 @@ namespace linear_algebra
             return result;
         }
 
-        bool is_singular() const
+        bool is_singular()
         {
-            return false;
+            if (this->is_square() == false)
+                return false;
+            return true;
         }
 
         ElementType det()
@@ -380,7 +420,8 @@ namespace linear_algebra
                           "Scalar must be of any arithmetic type.");
 
             utility::expect(this->is_square_matrix() == true,
-                            std::runtime_error("Taking power of a non-square matrix is not allowed."));
+                            std::runtime_error(
+                                "Taking power of a non-square matrix is not allowed."));
 
             return ElementType();
         }
@@ -392,7 +433,8 @@ namespace linear_algebra
                           "ElementType must be of any arithmetic type.");
 
             utility::expect(this->is_square_matrix() == true,
-                            std::runtime_error("Taking power of a non-square matrix is not allowed."));
+                            std::runtime_error(
+                                "Cannot find an identity matrix of a non-square matrix."));
 
             SizeType row_size = this->row_size();
             Matrix<ElementType> identity_matrix(row_size, row_size);
@@ -422,7 +464,8 @@ namespace linear_algebra
                           "Scalar must be of any arithmetic type.");
 
             utility::expect(this->is_square_matrix() == true,
-                            std::runtime_error("Taking power of a non-square matrix is not allowed."));
+                            std::runtime_error(
+                                "Taking power of a non-square matrix is not allowed."));
 
             if (scalar == 0)
                 return this->identity();
@@ -461,13 +504,10 @@ namespace linear_algebra
             static_assert(std::is_arithmetic_v<ScalarType>,
                           "Scalar must be of any arithmetic type.");
 
-            row_index = this->validate_negative_row_index_(row_index);
+            row_index = this->valid_row_index_(row_index);
 
             SizeType row_size = this->row_size();
             SizeType col_size = this->column_size();
-
-            utility::expect(row_index < row_size && row_index >= 0,
-                            std::range_error("Row addition: Row index out of bounds."));
 
             for (SizeType i = 0; i < col_size; i++)
                 *(this->begin() + row_index * col_size + i) += value;
@@ -481,13 +521,10 @@ namespace linear_algebra
             static_assert(std::is_arithmetic_v<ScalarType>,
                           "Scalar must be of any arithmetic type.");
 
-            row_index = this->validate_negative_row_index_(row_index);
+            row_index = this->valid_row_index_(row_index);
 
             SizeType row_size = this->row_size();
             SizeType col_size = this->column_size();
-
-            utility::expect(row_index < row_size && row_index >= 0,
-                            std::range_error("Row addition: Row index out of bounds."));
 
             for (SizeType i = 0; i < col_size; i++)
                 *(this->begin() + row_index * col_size + i) *= value;
@@ -498,17 +535,11 @@ namespace linear_algebra
         Matrix &row_swap(SizeType row_index1, SizeType row_index2)
         {
 
-            row_index1 = this->validate_negative_row_index_(row_index1);
-            row_index2 = this->validate_negative_row_index_(row_index2);
+            row_index1 = this->valid_row_index_(row_index1);
+            row_index2 = this->valid_row_index_(row_index2);
 
             SizeType row_size = this->row_size();
             SizeType col_size = this->column_size();
-
-            utility::expect(row_index1 < row_size && row_index1 >= 0,
-                            std::range_error("Row addition: Row index out of bounds."));
-
-            utility::expect(row_index2 < row_size && row_index2 >= 0,
-                            std::range_error("Row addition: Row index out of bounds."));
 
             for (SizeType i = 0; i < col_size; i++)
                 std::swap(*(this->begin() + row_index1 * col_size + i),
@@ -516,37 +547,50 @@ namespace linear_algebra
 
             return *this;
         }
+#endif /* MATRIX_MATH_FUNCTIONS */
 
     private:
         std::unique_ptr<MatrixType> matrix_ptr_;
 
         /// Need to check if the returned row_index is still less than 0.
-        SizeType validate_negative_row_index_(SizeType row_index) const noexcept
+        SizeType valid_row_index_(SizeType row_index) const
         {
-            return row_index < 0 ? this->row_size() + row_index : row_index;
+#if ALLOW_NEGATIVE_INDEX
+            if (row_index < 0)
+                row_index += this->row_size();
+#endif /* ALLOW_NEGATIVE_INDEX */
+            utility::expect(row_index >= 0 && row_index < this->row_size(),
+                            std::range_error("Row index out of range."));
+            return row_index;
         }
 
-        SizeType validate_negative_col_index_(SizeType col_index) const noexcept
+        SizeType valid_col_index(SizeType col_index) const
         {
-            return col_index < 0 ? this->column_size() + col_index : col_index;
+#if ALLOW_NEGATIVE_INDEX
+            if (col_index < 0)
+                col_index += this->column_size();
+#endif /* ALLOW_NEGATIVE_INDEX */
+            utility::expect(col_index >= 0 && col_index < this->column_size(),
+                            std::range_error("Column index out of range."));
+            return col_index;
         }
 
-        SizeType validate_negative_append_row_index_(SizeType row_index) const noexcept
+        SizeType validate_negative_append_row_index_(SizeType row_index) const
         {
             return row_index < 0 ? this->row_size() + row_index + 1 : row_index;
         }
 
-        SizeType validate_negative_append_col_index_(SizeType col_index) const noexcept
+        SizeType validate_negative_append_col_index_(SizeType col_index) const
         {
             return col_index < 0 ? this->column_size() + col_index + 1 : col_index;
         }
 
-        bool is_multipliable(SizeType rhs_row_size)
+        bool is_multipliable(SizeType rhs_row_size) const noexcept
         {
             return this->column_size() == rhs_row_size;
         }
 
-        bool is_summable(SizeType rhs_row_size, SizeType rhs_column_size)
+        bool is_summable(SizeType rhs_row_size, SizeType rhs_column_size) const noexcept
         {
             return utility::check_if_equal_dimensions(
                 this->row_size(), this->column_size(),

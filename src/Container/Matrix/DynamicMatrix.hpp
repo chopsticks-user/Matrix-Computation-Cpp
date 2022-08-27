@@ -1,6 +1,8 @@
 #ifndef LIN_ALG_CONTAINER_DYNAMIC_MATRIX_HPP
 #define LIN_ALG_CONTAINER_DYNAMIC_MATRIX_HPP
 
+#include "../../Config.hpp"
+
 #include "MatrixBase.hpp"
 
 #include <queue>
@@ -12,20 +14,27 @@ namespace zz_no_inc
         : public MatrixBase_<ElementType>
     {
         typedef MatrixBase_<ElementType> Base_;
+#if ALLOW_NEGATIVE_INDEX
         typedef utility::SizeType SizeType;
+#else
+        typedef utility::PositiveSizeType SizeType;
+#endif /* ALLOW_NEGATIVE_INDEX */
 
     public:
         DynamicMatrix_()
         {
             this->set_dimensions_();
         }
-
+#if DEBUG_LIN_ALG
         ~DynamicMatrix_() noexcept
         {
-            std::cout << "At memory address: " << std::addressof(*this)
-                      << ", an instance of DynamicMatrix, whose size of " << sizeof(*this)
+            std::cout << "At memory address: <" << std::addressof(*this)
+                      << ">, an instance of <DynamicMatrix>, whose size of " << sizeof(*this)
                       << " bytes, has been destroyed.\n";
         }
+#else
+        ~DynamicMatrix_() = default;
+#endif /* DEBUG_LIN_ALG */
 
         /// Might throw (std::bad_alloc) if std::fill_n failed to allocate memory.
         explicit DynamicMatrix_(SizeType row_size,
@@ -68,7 +77,7 @@ namespace zz_no_inc
             if (rhs_size != this->n_cols__)
                 throw std::range_error("Row sizes mismatch.");
             if (row_index > this->n_rows__ || row_index < 0)
-                throw std::range_error("Row index out of bounds.");
+                throw std::range_error("Row index out of range.");
 
             this->data__.insert(this->data__.begin() + row_index * this->n_cols__,
                                 std::begin(rhs_container),
@@ -85,7 +94,7 @@ namespace zz_no_inc
             if (rhs_size != this->n_rows__)
                 throw std::range_error("Column sizes mismatch.");
             if (col_index > this->n_cols__ || col_index < 0)
-                throw std::range_error("Column index out of bounds.");
+                throw std::range_error("Column index out of range.");
 
             // could be in an invalid state if an exception is thrown
             this->data__.resize(this->data__.size() + rhs_size);
@@ -111,7 +120,7 @@ namespace zz_no_inc
         DynamicMatrix_ &erase_row_at_(SizeType row_index)
         {
             if (row_index >= this->n_rows__ || row_index < 0)
-                throw std::range_error("Row index out of bounds.");
+                throw std::range_error("Row index out of range.");
             this->data__.erase(this->data__.begin() + this->n_cols__ * row_index,
                                this->data__.begin() + this->n_cols__ * row_index + this->n_cols__);
             this->n_rows__--;
@@ -121,7 +130,7 @@ namespace zz_no_inc
         DynamicMatrix_ &erase_col_at_(SizeType col_index)
         {
             if (col_index >= this->n_cols__ || col_index < 0)
-                throw std::range_error("Column index out of bounds.");
+                throw std::range_error("Column index out of range.");
 
             SizeType new_n_cols = this->n_cols__ - 1;
             for (SizeType i = col_index, j = 0; i < this->n_rows__ * (new_n_cols) + col_index; i++)
