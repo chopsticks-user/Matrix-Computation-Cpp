@@ -8,7 +8,6 @@
 #include <string_view>
 
 using namespace linear_algebra;
-using namespace zz_no_inc;
 using utility::Timer;
 
 int main()
@@ -16,31 +15,28 @@ int main()
 
     try
     {
-        int n = 10000;
+        int n = 10;
         int size = n * n;
         {
-            int sum = 0;
-            Matrix<int> m1(n, n, 12319);
+            Matrix<int> m1(n, n, -112872);
+
             Timer t1;
-            const auto *it = m1.begin();
-            const auto *it_end = m1.end();
-            while (it != it_end)
-                *(it++);
-            std::cout << *(it-1) << '\n';
+            std::cout << m1.identity() << '\n';
+            // m1.identity();
         }
 
         {
-            int sum = 0;
-            std::vector<int> v1(size, -2383);
-            Timer t2;
-            // for (auto it = v1.begin(); it != v1.end(); ++it)
+            // int sum = 0;
+            // std::vector<int> v1(size, -2383);
+            // Timer t2;
+            // // for (auto it = v1.begin(); it != v1.end(); ++it)
+            // // {
+            // //     *it;
+            // // }
+            // for (auto i = 0; i < size; i++)
             // {
-            //     *it;
+            //     v1[i];
             // }
-            for (auto i = 0; i < size; i++)
-            {
-                v1[i];
-            }
         }
     }
     catch (const std::exception &e)

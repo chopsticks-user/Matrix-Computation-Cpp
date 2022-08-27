@@ -348,17 +348,12 @@ namespace linear_algebra
             Matrix<ElementType> result(rhs_col_size, rhs_row_size);
             auto it1 = this->begin();
             auto it2 = rhs_matrix.begin();
-            auto it_end1 = this->end();
-            auto it_end2 = rhs_matrix.end();
             auto res_it = result.begin();
             auto res_it_end = result.end();
 
             SizeType i = 0;
             while ((res_it + i) != res_it_end)
-            {
-                *(res_it + i) = *(it1 + i) + *(it2 + i);
-                i++;
-            }
+                *(res_it + (i++)) = *(it1 + i) + *(it2 + i);
 
             return result;
         }
@@ -378,17 +373,12 @@ namespace linear_algebra
             Matrix<ElementType> result(rhs_col_size, rhs_row_size);
             auto it1 = this->begin();
             auto it2 = rhs_matrix.begin();
-            auto it_end1 = this->end();
-            auto it_end2 = rhs_matrix.end();
             auto res_it = result.begin();
             auto res_it_end = result.end();
 
             SizeType i = 0;
             while ((res_it + i) != res_it_end)
-            {
-                *(res_it + i) = *(it1 + i) - *(it2 + i);
-                i++;
-            }
+                *(res_it + (i++)) = *(it1 + i) - *(it2 + i);
 
             return result;
         }
@@ -398,7 +388,6 @@ namespace linear_algebra
         Matrix operator*(const RhsMatrixType &rhs_matrix)
         {
             const SizeType col_size = this->column_size();
-            const SizeType row_size = this->row_size();
             const SizeType rhs_col_size = rhs_matrix.column_size();
             const SizeType rhs_row_size = rhs_matrix.row_size();
 
@@ -408,13 +397,9 @@ namespace linear_algebra
                     "Dimensions mismatch when performing matrix multiplication."));
 
             Matrix<ElementType> result(col_size, rhs_row_size);
-
             auto it1 = this->begin();
             auto it2 = rhs_matrix.begin();
-            auto it_end1 = this->end();
-            auto it_end2 = rhs_matrix.end();
             auto res_it = result.begin();
-            auto res_it_end = result.end();
 
             for (SizeType i = 0; i < col_size; i++)
                 for (SizeType j = 0; j < rhs_row_size; j++)
@@ -429,22 +414,18 @@ namespace linear_algebra
         /// ElementType must have a defined operator*
         Matrix operator*(const ElementType &scalar)
         {
-            // if (scalar == 1)
-            //     return (*this).clone();
+            if (scalar == 1)
+                return *this;
 
             static_assert(std::is_arithmetic_v<ElementType>,
                           "ElementType must be arithmetic type.");
 
-            const SizeType col_size = this->column_size();
-            const SizeType row_size = this->row_size();
-
-            Matrix<ElementType> result(col_size, row_size);
+            Matrix<ElementType> result(this->column_size(), this->row_size());
 
             if (scalar == 0)
                 return result;
 
             auto it = this->begin();
-            auto it_end = this->end();
             auto res_it = result.begin();
             auto res_it_end = result.end();
 
@@ -470,7 +451,7 @@ namespace linear_algebra
             static_assert(std::is_arithmetic_v<ElementType>,
                           "Scalar must be of any arithmetic type.");
 
-            utility::expect(this->is_square_matrix() == true,
+            utility::expect(this->is_square() == true,
                             std::runtime_error(
                                 "Taking power of a non-square matrix is not allowed."));
 
@@ -483,14 +464,17 @@ namespace linear_algebra
             static_assert(std::is_arithmetic_v<ElementType>,
                           "ElementType must be of any arithmetic type.");
 
-            utility::expect(this->is_square_matrix() == true,
+            utility::expect(this->is_square() == true,
                             std::runtime_error(
                                 "Cannot find an identity matrix of a non-square matrix."));
 
-            SizeType col_size = this->col_size();
+            SizeType col_size = this->column_size();
             Matrix<ElementType> identity_matrix(col_size, col_size);
-            while (col_size--)
-                identity_matrix(col_size, col_size) = 1;
+            auto it = identity_matrix.begin();
+
+            for (SizeType i = 0; i < col_size; ++i)
+                *(it + i * (col_size + 1)) = 1;
+
             return identity_matrix;
         }
 
@@ -514,7 +498,7 @@ namespace linear_algebra
             static_assert(std::is_arithmetic_v<ScalarType>,
                           "Scalar must be of any arithmetic type.");
 
-            utility::expect(this->is_square_matrix() == true,
+            utility::expect(this->is_square() == true,
                             std::runtime_error(
                                 "Taking power of a non-square matrix is not allowed."));
 
@@ -543,9 +527,13 @@ namespace linear_algebra
             SizeType t_row_size = this->column_size();
 
             Matrix<ElementType> result(t_col_size, t_row_size);
-            for (SizeType i = 0; i < t_col_size; i++)
-                for (SizeType j = 0; j < t_row_size; j++)
-                    result(i, j) = (*this)(j, i);
+            auto it = this->begin();
+            auto res_it = result.begin();
+
+            for (SizeType i = 0; i < t_col_size; ++i)
+                for (SizeType j = 0; j < t_row_size; ++j)
+                    // result(i, j) = (*this)(j, i);
+                    *(res_it + i * t_row_size + j) = *(it + j * t_col_size + i);
             return result;
         }
 
@@ -556,12 +544,12 @@ namespace linear_algebra
                           "Scalar must be of any arithmetic type.");
 
             row_index = this->valid_row_index_(row_index);
-
-            // SizeType col_size = this->column_size();
             SizeType row_size = this->row_size();
+            auto it = this->begin() + row_index * row_size;
+            auto it_end = this->begin() + row_index * row_size + row_size;
 
-            for (SizeType i = 0; i < row_size; i++)
-                *(this->begin() + row_index * row_size + i) += value;
+            while (it != it_end)
+                *(it++) += value;
 
             return *this;
         }
@@ -573,12 +561,12 @@ namespace linear_algebra
                           "Scalar must be of any arithmetic type.");
 
             row_index = this->valid_row_index_(row_index);
-
-            // SizeType col_size = this->column_size();
             SizeType row_size = this->row_size();
+            auto it = this->begin() + row_index * row_size;
+            auto it_end = this->begin() + row_index * row_size + row_size;
 
-            for (SizeType i = 0; i < row_size; i++)
-                *(this->begin() + row_index * row_size + i) *= value;
+            while (it != it_end)
+                (*(it++)) *= value;
 
             return *this;
         }
@@ -590,11 +578,11 @@ namespace linear_algebra
             row_index2 = this->valid_row_index_(row_index2);
 
             SizeType row_size = this->row_size();
-            // SizeType col_size = this->column_size();
+            auto it1 = this->begin() + row_index1 * row_size;
+            auto it2 = this->begin() + row_index2 * row_size;
 
             for (SizeType i = 0; i < row_size; i++)
-                std::swap(*(this->begin() + row_index1 * row_size + i),
-                          *(this->begin() + row_index2 * row_size + i));
+                std::swap(*(it1 + i), *(it2 + i));
 
             return *this;
         }

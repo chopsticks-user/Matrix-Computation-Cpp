@@ -81,6 +81,21 @@ int main()
             // Matrix multiplication
             // Old: Time elapsed: 11,792,090 μs
             // New: Time elapsed: 375,278 μs
+
+            // 10000x10000 elements
+            // Row addition
+            // Old: Time elapsed: 161 μs
+            // New: Time elapsed: 15 μs
+
+            // 10000x10000 elements
+            // Row swap
+            // Old: Time elapsed: 325 μs
+            // New: Time elapsed: 35 μs
+
+            // 10000x10000 elements
+            // Transpose
+            // Old: Time elapsed: 6,761,776 μs
+            // New: Time elapsed: 339,611 μs
         }
 
         {
