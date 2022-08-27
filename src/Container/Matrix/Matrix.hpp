@@ -220,21 +220,21 @@ namespace linear_algebra
             return Matrix<ElementType, templ_row_size, templ_col_size>(*this);
         }
 
-        auto begin() const noexcept { return this->matrix_ptr_->data__.begin(); };
+        auto begin() const noexcept { return &*(this->matrix_ptr_->data__.begin()); };
 
-        auto end() const noexcept { return this->matrix_ptr_->data__.end(); };
+        auto end() const noexcept { return &*(this->matrix_ptr_->data__.end()); };
 
-        auto rbegin() const noexcept { return this->matrix_ptr_->data__.rbegin(); };
+        auto rbegin() const noexcept { return &*(this->matrix_ptr_->data__.rbegin()); };
 
-        auto rend() const noexcept { return this->matrix_ptr_->data__.rend(); };
+        auto rend() const noexcept { return &*(this->matrix_ptr_->data__.rend()); };
 
-        auto cbegin() const noexcept { return this->matrix_ptr_->data__.cbegin(); };
+        auto cbegin() const noexcept { return &*(this->matrix_ptr_->data__.cbegin()); };
 
-        auto cend() const noexcept { return this->matrix_ptr_->data__.cend(); };
+        auto cend() const noexcept { return &*(this->matrix_ptr_->data__.cend()); };
 
-        auto crbegin() const noexcept { return this->matrix_ptr_->data__.crbegin(); };
+        auto crbegin() const noexcept { return &*(this->matrix_ptr_->data__.crbegin()); };
 
-        auto crend() const noexcept { return this->matrix_ptr_->data__.crend(); };
+        auto crend() const noexcept { return &*(this->matrix_ptr_->data__.crend()); };
 
         Matrix &fill(const ElementType &fill_value = ElementType())
         {
@@ -338,9 +338,20 @@ namespace linear_algebra
                     "Dimensions mismatch when performing matrix addition."));
 
             Matrix<ElementType> result(rhs_row_size, rhs_col_size);
-            for (SizeType i = 0; i < rhs_row_size; i++)
-                for (SizeType j = 0; j < rhs_col_size; j++)
-                    result(i, j) = (*this)(i, j) + rhs_matrix(i, j);
+            auto it1 = this->begin();
+            auto it2 = rhs_matrix.begin();
+            auto it_end1 = this->end();
+            auto it_end2 = rhs_matrix.end();
+            auto res_it = result.begin();
+            auto res_it_end = result.end();
+
+            SizeType i = 0;
+            while ((res_it + i) != res_it_end)
+            {
+                *(res_it + i) = *(it1 + i) + *(it2 + i);
+                i++;
+            }
+
             return result;
         }
 
@@ -357,9 +368,20 @@ namespace linear_algebra
                     "Dimensions mismatch when performing matrix subtraction."));
 
             Matrix<ElementType> result(rhs_row_size, rhs_col_size);
-            for (SizeType i = 0; i < rhs_row_size; i++)
-                for (SizeType j = 0; j < rhs_col_size; j++)
-                    result(i, j) = (*this)(i, j) - rhs_matrix(i, j);
+            auto it1 = this->begin();
+            auto it2 = rhs_matrix.begin();
+            auto it_end1 = this->end();
+            auto it_end2 = rhs_matrix.end();
+            auto res_it = result.begin();
+            auto res_it_end = result.end();
+
+            SizeType i = 0;
+            while ((res_it + i) != res_it_end)
+            {
+                *(res_it + i) = *(it1 + i) - *(it2 + i);
+                i++;
+            }
+
             return result;
         }
 
@@ -378,18 +400,29 @@ namespace linear_algebra
                     "Dimensions mismatch when performing matrix multiplication."));
 
             Matrix<ElementType> result(row_size, rhs_col_size);
+
+            auto it1 = this->begin();
+            auto it2 = rhs_matrix.begin();
+            auto it_end1 = this->end();
+            auto it_end2 = rhs_matrix.end();
+            auto res_it = result.begin();
+            auto res_it_end = result.end();
+
             for (SizeType i = 0; i < row_size; i++)
                 for (SizeType j = 0; j < rhs_col_size; j++)
                     for (SizeType k = 0; k < rhs_row_size; k++)
-                        result(i, j) += (*this)(i, k) * rhs_matrix(k, j);
+                        *(res_it + i * rhs_col_size + j) +=
+                            (*(it1 + i * rhs_row_size + k)) *
+                            (*(it2 + k * rhs_col_size + j));
+
             return result;
         }
 
         /// ElementType must have a defined operator*
         Matrix operator*(const ElementType &scalar)
         {
-            if (scalar == 1)
-                return *this;
+            // if (scalar == 1)
+            //     return (*this).clone();
 
             static_assert(std::is_arithmetic_v<ElementType>,
                           "ElementType must be arithmetic type.");
@@ -402,8 +435,18 @@ namespace linear_algebra
             if (scalar == 0)
                 return result;
 
-            for (SizeType i = 0; i < row_size * col_size; i++)
-                *(result.begin() + i) = scalar * (*(this->begin() + i));
+            auto it = this->begin();
+            auto it_end = this->end();
+            auto res_it = result.begin();
+            auto res_it_end = result.end();
+
+            SizeType i = 0;
+            while ((res_it + i) != res_it_end)
+            {
+                *(res_it + i) = (*(it + i)) * (scalar);
+                i++;
+            }
+
             return result;
         }
 
