@@ -6,40 +6,36 @@
 #include <typeinfo>
 #include <functional>
 #include <string_view>
+#include <tuple>
 
 using namespace linear_algebra;
+using utility::MatrixIt;
 using utility::Timer;
+
+template <typename ItTp, typename RowSizeTp>
+void test(MatrixIt<ItTp, RowSizeTp> it1,
+          MatrixIt<ItTp, RowSizeTp> it2)
+{
+}
 
 int main()
 {
 
     try
     {
-        int n = 10000;
-        int m = 10000;
-        {
-            Matrix<int> m1(n, m, -1);
-            // Matrix<int> m2(m, m, -1);
-            // m1(0,1) = 1000;
+        Matrix<int> m1(10000, 10000, 555);
+        Matrix<int> m2(10000, 10000, -66);
 
+        {
             Timer t1;
-            // std::cout << m1.upper_triangle() << '\n';
-            m1.upper_triangle();
+            // std::cout << m2 + m1;
+            m1 - m2;
         }
 
         {
-            // int sum = 0;
-            // std::vector<int> v1(size, -2383);
-            // Timer t2;
-            // // for (auto it = v1.begin(); it != v1.end(); ++it)
-            // // {
-            // //     *it;
-            // // }
-            // for (auto i = 0; i < size; i++)
-            // {
-            //     v1[i];
-            // }
-            int a;
+            Timer t1;
+            Matrix<int> m3(10000, 10000);
+            matrix::add(m1.iterator(), m2.iterator(), m3.iterator());
         }
     }
     catch (const std::exception &e)

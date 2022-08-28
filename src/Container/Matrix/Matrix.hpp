@@ -3,10 +3,12 @@
 
 #include "../../Config.hpp"
 
+#include "../../Computation/Computation.hpp"
 #include "DynamicMatrix.hpp"
 #include "StaticMatrix.hpp"
 
 #include <memory>
+#include <cmath>
 
 namespace linear_algebra
 {
@@ -227,6 +229,11 @@ namespace linear_algebra
 
         auto crend() const noexcept { return &*(this->mat_ptr_->data__.crend()); };
 
+        auto iterator() const
+        {
+            return utility::MatrixIt(this->begin(), this->end(), this->row_size());
+        }
+
         Matrix &fill(const UnitTp &fill_val = UnitTp())
         {
             this->mat_ptr_->fill_all_element_with_(fill_val);
@@ -251,7 +258,7 @@ namespace linear_algebra
         Matrix &fill_column(SizeTp col_idx, const UnitTp &fill_val)
         {
             col_idx = this->valid_col_index(col_idx);
-            this->mat_ptr_->fill_val_to_col_(col_idx, fill_val);
+            this->mat_ptr_->fill_value_to_col_(col_idx, fill_val);
             return *this;
         }
 
@@ -311,6 +318,7 @@ namespace linear_algebra
 
 #if ENABLE_MATRIX_MATH_FUNCTIONS
         /// UnitTp must have a defined operator+
+        /// 10000x10000 elements: Time elapsed: 241,377 μs
         template <typename RMatTp>
         Matrix operator+(const RMatTp &r_mat)
         {
@@ -321,15 +329,7 @@ namespace linear_algebra
                             std::runtime_error("Dimensions mismatch when performing matrix addition."));
 
             Matrix<UnitTp> result(r_col_h, r_row_w);
-            auto it1 = this->begin();
-            auto it2 = r_mat.begin();
-            auto res_it = result.begin();
-            auto res_it_end = result.end();
-
-            SizeTp i = 0;
-            while ((res_it + i) != res_it_end)
-                *(res_it + (i++)) = *(it1 + i) + *(it2 + i);
-
+            matrix::add(this->iterator(), r_mat.iterator(), result.iterator());
             return result;
         }
 
@@ -347,10 +347,9 @@ namespace linear_algebra
             auto it1 = this->begin();
             auto it2 = r_mat.begin();
             auto res_it = result.begin();
-            auto res_it_end = result.end();
 
             SizeTp i = 0;
-            while ((res_it + i) != res_it_end)
+            while (i < r_col_h * r_row_w)
                 *(res_it + (i++)) = *(it1 + i) - *(it2 + i);
 
             return result;
@@ -387,27 +386,26 @@ namespace linear_algebra
         /// UnitTp must have a defined operator*
         Matrix operator*(const UnitTp &scalar)
         {
-            if (scalar == 1)
-                return *this;
 
             static_assert(std::is_arithmetic_v<UnitTp>,
                           "UnitTp must be arithmetic type.");
 
-            Matrix<UnitTp> result(this->column_size(), this->row_size());
+            if (scalar == 1)
+                return *this;
+
+            const SizeTp col_h = this->column_size();
+            const SizeTp row_w = this->row_size();
+            Matrix<UnitTp> result(col_h, row_w);
 
             if (scalar == 0)
                 return result;
 
             auto it = this->begin();
             auto res_it = result.begin();
-            auto res_it_end = result.end();
 
             SizeTp i = 0;
-            while ((res_it + i) != res_it_end)
-            {
-                *(res_it + i) = (*(it + i)) * (scalar);
-                i++;
-            }
+            while (i < col_h * row_w)
+                *(res_it + (i++)) = (*(it + i)) * (scalar);
 
             return result;
         }
@@ -425,6 +423,7 @@ namespace linear_algebra
             return !std::equal(this->begin(), this->end(), r_mat.begin(), r_mat.end());
         }
 
+        /// incomplete
         bool is_singular()
         {
             if (this->is_square() == false)
@@ -432,6 +431,7 @@ namespace linear_algebra
             return true;
         }
 
+        /// incomplete
         bool is_invertible()
         {
             return !this->is_singular();
@@ -453,6 +453,7 @@ namespace linear_algebra
             return (*this) == this->transpose() * (-1);
         }
 
+        /// incomplete
         bool is_definite()
         {
             if (this->is_symmetric() == false)
@@ -460,6 +461,7 @@ namespace linear_algebra
             return true;
         }
 
+        /// incomplete
         bool is_orthogonal()
         {
             if (this->is_square() == false)
@@ -467,6 +469,7 @@ namespace linear_algebra
             return true;
         }
 
+        /// 500x500 elements: Time elapsed: 162833 μs
         UnitTp det()
         {
             static_assert(std::is_arithmetic_v<UnitTp>,
@@ -476,9 +479,49 @@ namespace linear_algebra
                             std::runtime_error(
                                 "Taking power of a non-square matrix is not allowed."));
 
-            return UnitTp();
+            SizeTp size = this->column_size();
+            if (size == 0)
+                return UnitTp();
+            if (size == 1)
+                return (*this)(0, 0);
+            if (size == 2)
+                return (*this)(0, 0) * (*this)(1, 1) - (*this)(1, 0) * (*this)(0, 1);
+
+            auto copy_mat = this->clone();
+            auto it = copy_mat.begin();
+            UnitTp res = 1, total = 1;
+            for (SizeTp i = 0; i < size; ++i)
+            {
+                SizeTp temp = i;
+                while (temp < size)
+                {
+                    if (*(it + temp * size + i) != 0)
+                        break;
+                    ++temp;
+                }
+                if (temp == size)
+                    continue;
+                if (temp != i)
+                {
+                    copy_mat.row_swap(temp, i);
+                    res *= std::pow(-1, temp - i);
+                }
+                for (SizeTp j = i + 1; j < size; ++j)
+                {
+                    UnitTp diag_val = *(it + i * size + i);
+                    UnitTp next_row_val = *(it + j * size + i);
+                    for (SizeTp k = 0; k < size; k++)
+                        *(it + j * size + k) = (diag_val * (*(it + j * size + k))) -
+                                               (next_row_val * (*(it + i * size + k)));
+                    total *= diag_val;
+                }
+            }
+            for (SizeTp i = 0; i < size; ++i)
+                res *= (*(it + i * size + i));
+            return res / total;
         }
 
+        /// incomplete
         UnitTp norm() { return 0; }
 
         UnitTp trace()
@@ -557,6 +600,7 @@ namespace linear_algebra
             return res;
         }
 
+        /// incomplete
         Matrix inverse()
         {
             return *this;
@@ -650,7 +694,7 @@ namespace linear_algebra
             return *this;
         }
 
-        Matrix &row_switching(SizeTp row_idx1, SizeTp row_idx2)
+        Matrix &row_swap(SizeTp row_idx1, SizeTp row_idx2)
         {
             row_idx1 = this->valid_row_index_(row_idx1);
             row_idx2 = this->valid_row_index_(row_idx2);
