@@ -11,10 +11,18 @@
 namespace linear_algebra
 {
 #if ALLOW_NEGATIVE_INDEX
+    /**
+     * @brief aaa
+     *
+     */
     template <typename UnitTp = float,
               zz_no_inc::matrix::SizeType tpl_col_h = 0,
               zz_no_inc::matrix::SizeType tpl_row_w = 0>
 #else
+    /**
+     * @brief aaaa
+     *
+     */
     template <typename UnitTp = float,
               zz_no_inc::matrix::PositiveSizeType tpl_col_h = 0,
               zz_no_inc::matrix::PositiveSizeType tpl_row_w = 0>
@@ -303,16 +311,14 @@ namespace linear_algebra
 
 #if ENABLE_MATRIX_MATH_FUNCTIONS
         /// UnitTp must have a defined operator+
-        template <typename RhsMatTp>
-        Matrix operator+(const RhsMatTp &r_mat)
+        template <typename RMatTp>
+        Matrix operator+(const RMatTp &r_mat)
         {
             const SizeTp r_col_h = r_mat.column_size();
             const SizeTp r_row_w = r_mat.row_size();
 
-            utility::expect(
-                this->is_summable(r_col_h, r_row_w),
-                std::runtime_error(
-                    "Dimensions mismatch when performing matrix addition."));
+            utility::expect(this->is_summable(r_col_h, r_row_w),
+                            std::runtime_error("Dimensions mismatch when performing matrix addition."));
 
             Matrix<UnitTp> result(r_col_h, r_row_w);
             auto it1 = this->begin();
@@ -328,16 +334,14 @@ namespace linear_algebra
         }
 
         /// UnitTp must have a defined operator-
-        template <typename RhsMatTp>
-        Matrix operator-(const RhsMatTp &r_mat)
+        template <typename RMatTp>
+        Matrix operator-(const RMatTp &r_mat)
         {
             const SizeTp r_col_h = r_mat.column_size();
             const SizeTp r_row_w = r_mat.row_size();
 
-            utility::expect(
-                this->is_summable(r_col_h, r_row_w),
-                std::runtime_error(
-                    "Dimensions mismatch when performing matrix subtraction."));
+            utility::expect(this->is_summable(r_col_h, r_row_w),
+                            std::runtime_error("Dimensions mismatch when performing matrix subtraction."));
 
             Matrix<UnitTp> result(r_col_h, r_row_w);
             auto it1 = this->begin();
@@ -353,8 +357,8 @@ namespace linear_algebra
         }
 
         /// UnitTp must have a defined operator*
-        template <typename RhsMatTp>
-        Matrix operator*(const RhsMatTp &r_mat)
+        template <typename RMatTp>
+        Matrix operator*(const RMatTp &r_mat)
         {
             const SizeTp col_size = this->column_size();
             const SizeTp r_col_h = r_mat.column_size();
@@ -408,6 +412,19 @@ namespace linear_algebra
             return result;
         }
 
+        /// 10000x10000 elements: Time elapsed: 26,176 μs
+        template <typename RMatTp>
+        bool operator==(const RMatTp &r_mat)
+        {
+            return std::equal(this->begin(), this->end(), r_mat.begin(), r_mat.end());
+        }
+
+        template <typename RMatTp>
+        bool operator!=(const RMatTp &r_mat)
+        {
+            return !std::equal(this->begin(), this->end(), r_mat.begin(), r_mat.end());
+        }
+
         bool is_singular()
         {
             if (this->is_square() == false)
@@ -420,18 +437,33 @@ namespace linear_algebra
             return !this->is_singular();
         }
 
+        /// 10000x10000 elements: 330,696 μs
         bool is_symmetric()
         {
-            return true;
+            if (this->is_square() == false)
+                return false;
+            return (*this) == this->transpose();
+        }
+
+        /// 10000x10000 elements: 580,592 μs
+        bool is_skew_symmetric()
+        {
+            if (this->is_square() == false)
+                return false;
+            return (*this) == this->transpose() * (-1);
         }
 
         bool is_definite()
         {
+            if (this->is_symmetric() == false)
+                return false;
             return true;
         }
 
         bool is_orthogonal()
         {
+            if (this->is_square() == false)
+                return false;
             return true;
         }
 
@@ -449,7 +481,17 @@ namespace linear_algebra
 
         UnitTp norm() { return 0; }
 
-        UnitTp trace() { return 0; }
+        UnitTp trace()
+        {
+            utility::expect(this->is_square(),
+                            std::runtime_error("Cannot find trace of a non-square matrix."));
+            auto it = this->begin();
+            auto size = this->column_size();
+            UnitTp res = UnitTp();
+            for (SizeTp i = 0; i < size; ++i)
+                res += (*(it + i * size + i));
+            return res;
+        }
 
         Matrix identity()
         {
@@ -459,7 +501,7 @@ namespace linear_algebra
 
             utility::expect(this->is_square() == true,
                             std::runtime_error(
-                                "Cannot find an identity matrix of a non-square matrix."));
+                                "Cannot find the identity matrix of a non-square matrix."));
 
             SizeTp col_size = this->column_size();
             Matrix<UnitTp> identity_matrix(col_size, col_size);
@@ -471,19 +513,48 @@ namespace linear_algebra
             return identity_matrix;
         }
 
-        Matrix diagonal()
+        /// 10000x10000 elements: Time elapsed: 102,164 μs
+        Matrix diagonal() const
         {
-            return *this;
+            utility::expect(this->is_square() == true,
+                            std::runtime_error("Cannot find the diagonal matrix of a non-square matrix."));
+            SizeTp col_size = this->column_size();
+            Matrix<UnitTp> res(col_size, col_size);
+            auto it = this->begin();
+            auto res_it = res.begin();
+            for (SizeTp i = 0; i < col_size; ++i)
+                *(res_it + i * (col_size + 1)) = *(it + i * (col_size + 1));
+            return res;
         }
 
+        /// 10000x10000 elements: Time elapsed: 186,823 μs
         Matrix lower_triangle()
         {
-            return *this;
+            utility::expect(this->is_square() == true,
+                            std::runtime_error("Cannot find the diagonal matrix of a non-square matrix."));
+            SizeTp col_size = this->column_size();
+            Matrix<UnitTp> res(col_size, col_size);
+            auto it = this->begin();
+            auto res_it = res.begin();
+            for (SizeTp i = 0; i < col_size; ++i)
+                for (SizeTp j = 0; j <= i; ++j)
+                    *(res_it + i * col_size + j) = *(it + i * col_size + j);
+            return res;
         }
 
+        /// 10000x10000 elements: Time elapsed: 189,699 μs
         Matrix upper_triangle()
         {
-            return *this;
+            utility::expect(this->is_square() == true,
+                            std::runtime_error("Cannot find the diagonal matrix of a non-square matrix."));
+            SizeTp col_size = this->column_size();
+            Matrix<UnitTp> res(col_size, col_size);
+            auto it = this->begin();
+            auto res_it = res.begin();
+            for (SizeTp i = 0; i < col_size; ++i)
+                for (SizeTp j = i; j < col_size; ++j)
+                    *(res_it + i * col_size + j) = *(it + i * col_size + j);
+            return res;
         }
 
         Matrix inverse()
@@ -491,11 +562,12 @@ namespace linear_algebra
             return *this;
         }
 
-        Matrix sub(SizeTp rm_col_index, SizeTp rm_row_index)
+        /// 10000x10000 elements: Time elapsed: 418,555 μs
+        Matrix sub(SizeTp rm_row_index, SizeTp rm_col_index)
         {
             Matrix<UnitTp> sub_matrix(std::move(this->clone()));
-            sub_matrix.remove_column(rm_col_index);
             sub_matrix.remove_row(rm_row_index);
+            sub_matrix.remove_column(rm_col_index);
             return sub_matrix;
         }
 

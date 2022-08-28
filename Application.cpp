@@ -15,14 +15,16 @@ int main()
 
     try
     {
-        int n = 10;
-        int size = n * n;
+        int n = 10000;
+        int m = 10000;
         {
-            Matrix<int> m1(n, n, -112872);
+            Matrix<int> m1(n, m, -1);
+            // Matrix<int> m2(m, m, -1);
+            // m1(0,1) = 1000;
 
             Timer t1;
-            // std::cout << m1.identity() << '\n';
-            std::cout << m1 + m1 << '\n';
+            // std::cout << m1.upper_triangle() << '\n';
+            m1.upper_triangle();
         }
 
         {
@@ -37,6 +39,7 @@ int main()
             // {
             //     v1[i];
             // }
+            int a;
         }
     }
     catch (const std::exception &e)
