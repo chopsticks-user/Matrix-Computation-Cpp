@@ -12,30 +12,12 @@
 
 namespace linear_algebra
 {
-#if ALLOW_NEGATIVE_INDEX
-    /**
-     * @brief aaa
-     *
-     */
     template <typename UnitTp = float,
               zz_no_inc::matrix::SizeType tpl_col_h = 0,
               zz_no_inc::matrix::SizeType tpl_row_w = 0>
-#else
-    /**
-     * @brief aaaa
-     *
-     */
-    template <typename UnitTp = float,
-              zz_no_inc::matrix::PositiveSizeType tpl_col_h = 0,
-              zz_no_inc::matrix::PositiveSizeType tpl_row_w = 0>
-#endif /* ALLOW_NEGATIVE_INDEX */
     class Matrix
     {
-#if ALLOW_NEGATIVE_INDEX
-        typedef zz_no_inc::matrix::SizeType SizeType;
-#else
-        typedef zz_no_inc::matrix::PositiveSizeType SizeTp;
-#endif /* ALLOW_NEGATIVE_INDEX */
+        typedef zz_no_inc::matrix::SizeType SizeTp;
         typedef zz_no_inc::StaticMatrix_<UnitTp,
                                          tpl_col_h,
                                          tpl_row_w>
@@ -325,11 +307,15 @@ namespace linear_algebra
             const SizeTp r_col_h = r_mat.column_size();
             const SizeTp r_row_w = r_mat.row_size();
 
+            /** Although <matrix::add()> already has a range check,
+             * this check ensures that a new matrix will not be
+             * created if the condition is not satisified.
+             */
             utility::expect(this->is_summable(r_col_h, r_row_w),
                             std::runtime_error("Dimensions mismatch when performing matrix addition."));
 
             Matrix<UnitTp> result(r_col_h, r_row_w);
-            matrix::add(this->iterator(), r_mat.iterator(), result.iterator());
+            matrix::add(this->iterator(), r_mat.iterator(), result.iterator(), false);
             return result;
         }
 
@@ -340,18 +326,15 @@ namespace linear_algebra
             const SizeTp r_col_h = r_mat.column_size();
             const SizeTp r_row_w = r_mat.row_size();
 
+            /** Although <matrix::subtract()> already has a range check,
+             * this check ensures that a new matrix will not be
+             * created if the condition is not satisified.
+             */
             utility::expect(this->is_summable(r_col_h, r_row_w),
-                            std::runtime_error("Dimensions mismatch when performing matrix subtraction."));
+                            std::runtime_error("Dimensions mismatch when performing matrix addition."));
 
             Matrix<UnitTp> result(r_col_h, r_row_w);
-            auto it1 = this->begin();
-            auto it2 = r_mat.begin();
-            auto res_it = result.begin();
-
-            SizeTp i = 0;
-            while (i < r_col_h * r_row_w)
-                *(res_it + (i++)) = *(it1 + i) - *(it2 + i);
-
+            matrix::subtract(this->iterator(), r_mat.iterator(), result.iterator());
             return result;
         }
 

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+./libs/valgrind/vg-in-place ./build/Application

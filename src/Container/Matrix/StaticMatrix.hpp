@@ -7,26 +7,15 @@
 
 namespace zz_no_inc
 {
-#if ALLOW_NEGATIVE_INDEX
     template <typename ElementType,
               matrix::SizeType templ_col_size = 0,
               matrix::SizeType templ_row_size = 0>
-#else
-    template <typename ElementType,
-              matrix::PositiveSizeType templ_col_size = 0,
-              matrix::PositiveSizeType templ_row_size = 0>
-#endif /* ALLOW_NEGATIVE_INDEX */
     class StaticMatrix_
-        : public MatrixBase_<ElementType,
-                             templ_col_size,
-                             templ_row_size>
+        : public MatrixBase_<ElementType, templ_col_size, templ_row_size>
     {
         typedef MatrixBase_<ElementType, templ_col_size, templ_row_size> Base_;
-#if ALLOW_NEGATIVE_INDEX
         typedef matrix::SizeType SizeType;
-#else
-        typedef matrix::PositiveSizeType SizeType;
-#endif /* ALLOW_NEGATIVE_INDEX */
+
     public:
         StaticMatrix_()
         {

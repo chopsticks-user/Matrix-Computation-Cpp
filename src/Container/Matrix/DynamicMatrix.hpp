@@ -14,11 +14,7 @@ namespace zz_no_inc
         : public MatrixBase_<ElementType>
     {
         typedef MatrixBase_<ElementType> Base_;
-#if ALLOW_NEGATIVE_INDEX
         typedef matrix::SizeType SizeType;
-#else
-        typedef matrix::PositiveSizeType SizeType;
-#endif /* ALLOW_NEGATIVE_INDEX */
 
     public:
         DynamicMatrix_()

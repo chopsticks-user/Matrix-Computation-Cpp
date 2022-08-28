@@ -9,8 +9,7 @@ namespace zz_no_inc
 
     namespace matrix
     {
-        typedef long SizeType;
-        typedef std::size_t PositiveSizeType;
+        typedef int_least64_t SizeType;
 
         template <SizeType col_size, SizeType row_size>
         constexpr void validate_matrix_dimensions()

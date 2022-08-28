@@ -16,22 +16,12 @@
 
 namespace zz_no_inc
 {
-#if ALLOW_NEGATIVE_INDEX
     template <typename ElementType,
               matrix::SizeType templ_col_size = 0,
               matrix::SizeType templ_row_size = 0>
-#else
-    template <typename ElementType,
-              matrix::PositiveSizeType templ_col_size = 0,
-              matrix::PositiveSizeType templ_row_size = 0>
-#endif /* ALLOW_NEGATIVE_INDEX */
     struct MatrixBase_
     {
-#if ALLOW_NEGATIVE_INDEX
         typedef matrix::SizeType SizeType;
-#else
-        typedef matrix::PositiveSizeType SizeType;
-#endif /* ALLOW_NEGATIVE_INDEX */
 
         typedef std::vector<ElementType> DataContainerType;
 

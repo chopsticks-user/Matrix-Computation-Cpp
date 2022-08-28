@@ -16,16 +16,16 @@ namespace utility
      * @brief Iterator wrapper for matrix data strucures.
      *
      * @tparam ItType
-     * @tparam RowSizeTp
+     * @tparam SizeTp
      */
-    template <typename ItTp, typename RowSizeTp>
+    template <typename ItTp, typename SizeTp>
     struct MatrixIt
     {
         ItTp begin;
         ItTp end;
-        RowSizeTp row_size;
+        SizeTp row_size;
 
-        MatrixIt(ItTp it_begin, ItTp it_end, RowSizeTp size)
+        MatrixIt(ItTp it_begin, ItTp it_end, SizeTp size)
         {
             expect((it_end - it_begin) % size == 0 && it_end - it_begin > 0,
                    std::runtime_error("Not a matrix."));

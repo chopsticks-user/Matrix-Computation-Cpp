@@ -12,12 +12,6 @@ using namespace linear_algebra;
 using utility::MatrixIt;
 using utility::Timer;
 
-template <typename ItTp, typename RowSizeTp>
-void test(MatrixIt<ItTp, RowSizeTp> it1,
-          MatrixIt<ItTp, RowSizeTp> it2)
-{
-}
-
 int main()
 {
 
@@ -27,15 +21,15 @@ int main()
         Matrix<int> m2(10000, 10000, -66);
 
         {
+            Matrix<int> m3(10000, 10000);
             Timer t1;
-            // std::cout << m2 + m1;
-            m1 - m2;
+            matrix::subtract(m1.iterator(), m2.iterator(), m3.iterator(), false);
         }
 
         {
-            Timer t1;
             Matrix<int> m3(10000, 10000);
-            matrix::add(m1.iterator(), m2.iterator(), m3.iterator());
+            Timer t1;
+            matrix::subtract(m1.iterator(), m2.iterator(), m3.iterator());
         }
     }
     catch (const std::exception &e)

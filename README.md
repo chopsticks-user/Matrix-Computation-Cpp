@@ -1,2 +1,2 @@
 # Math-Library
-Matrix and tensor computations.
+Matrix computations.
