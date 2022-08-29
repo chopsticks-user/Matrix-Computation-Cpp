@@ -182,7 +182,7 @@ namespace zz_no_inc
 #else
             utility::expect(row_index >= 0 && row_index < n_rows__ &&
                                 col_index >= 0 && col_index < n_cols__,
-                            std::range_error("Index out of range."));
+                            std::out_of_range("Index out of range."));
             return data__[row_index * n_cols__ + col_index];
 #endif /* ALLOW_NEGATIVE_INDEX */
         }
@@ -194,7 +194,7 @@ namespace zz_no_inc
 #else
             utility::expect(row_index >= 0 && row_index < n_rows__ &&
                                 col_index >= 0 && col_index < n_cols__,
-                            std::range_error("Index out of range."));
+                            std::out_of_range("Index out of range."));
             return data__[row_index * n_cols__ + col_index];
 #endif /* ALLOW_NEGATIVE_INDEX */
         }
@@ -261,9 +261,9 @@ namespace zz_no_inc
         {
             SizeType rhs_size = matrix::get_1d_seq_container_size(rhs_container);
             if (rhs_size != n_cols__)
-                throw std::range_error("Row sizes mismatch.");
+                throw std::out_of_range("Row sizes mismatch.");
             if (row_index >= n_rows__ || row_index < 0)
-                throw std::range_error("Row index out of bounds.");
+                throw std::out_of_range("Row index out of bounds.");
 
             std::copy(std::begin(rhs_container),
                       std::end(rhs_container),
@@ -277,9 +277,9 @@ namespace zz_no_inc
         {
             SizeType rhs_size = matrix::get_1d_seq_container_size(rhs_container);
             if (rhs_size != n_rows__)
-                throw std::range_error("Column sizes mismatch.");
+                throw std::out_of_range("Column sizes mismatch.");
             if (col_index >= n_cols__ || col_index < 0)
-                throw std::range_error("Column index out of bounds.");
+                throw std::out_of_range("Column index out of bounds.");
 
             for (SizeType i = 0; i < rhs_size; i++)
                 data__[n_cols__ * i + col_index] = rhs_container[i];

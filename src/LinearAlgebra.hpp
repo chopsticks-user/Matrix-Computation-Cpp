@@ -7,4 +7,12 @@
 #include "Container/Container.hpp"
 #include "Computation/Computation.hpp"
 
+namespace linear_algebra
+{
+    namespace matrix
+    {
+        
+    }
+} /* linear_algebra */
+
 #endif /* LINEAR_ALGEBRA_HPP */

@@ -199,19 +199,7 @@ namespace linear_algebra
 
         auto end() const noexcept { return &*(this->mat_ptr_->data__.end()); };
 
-        auto rbegin() const noexcept { return &*(this->mat_ptr_->data__.rbegin()); };
-
-        auto rend() const noexcept { return &*(this->mat_ptr_->data__.rend()); };
-
-        auto cbegin() const noexcept { return &*(this->mat_ptr_->data__.cbegin()); };
-
-        auto cend() const noexcept { return &*(this->mat_ptr_->data__.cend()); };
-
-        auto crbegin() const noexcept { return &*(this->mat_ptr_->data__.crbegin()); };
-
-        auto crend() const noexcept { return &*(this->mat_ptr_->data__.crend()); };
-
-        auto iterator() const
+        auto it() const
         {
             return utility::MatrixIt(this->begin(), this->end(), this->row_size());
         }
@@ -300,22 +288,17 @@ namespace linear_algebra
 
 #if ENABLE_MATRIX_MATH_FUNCTIONS
         /// UnitTp must have a defined operator+
-        /// 10000x10000 elements: Time elapsed: 241,377 μs
         template <typename RMatTp>
         Matrix operator+(const RMatTp &r_mat)
         {
             const SizeTp r_col_h = r_mat.column_size();
             const SizeTp r_row_w = r_mat.row_size();
 
-            /** Although <matrix::add()> already has a range check,
-             * this check ensures that a new matrix will not be
-             * created if the condition is not satisified.
-             */
             utility::expect(this->is_summable(r_col_h, r_row_w),
                             std::runtime_error("Dimensions mismatch when performing matrix addition."));
 
             Matrix<UnitTp> result(r_col_h, r_row_w);
-            matrix::add(this->iterator(), r_mat.iterator(), result.iterator(), false);
+            matrix::add(this->it(), r_mat.it(), result.it(), false);
             return result;
         }
 
@@ -326,15 +309,11 @@ namespace linear_algebra
             const SizeTp r_col_h = r_mat.column_size();
             const SizeTp r_row_w = r_mat.row_size();
 
-            /** Although <matrix::subtract()> already has a range check,
-             * this check ensures that a new matrix will not be
-             * created if the condition is not satisified.
-             */
             utility::expect(this->is_summable(r_col_h, r_row_w),
                             std::runtime_error("Dimensions mismatch when performing matrix addition."));
 
             Matrix<UnitTp> result(r_col_h, r_row_w);
-            matrix::subtract(this->iterator(), r_mat.iterator(), result.iterator());
+            matrix::subtract(this->it(), r_mat.it(), result.it(), false);
             return result;
         }
 
@@ -342,7 +321,7 @@ namespace linear_algebra
         template <typename RMatTp>
         Matrix operator*(const RMatTp &r_mat)
         {
-            const SizeTp col_size = this->column_size();
+            const SizeTp col_h = this->column_size();
             const SizeTp r_col_h = r_mat.column_size();
             const SizeTp r_row_w = r_mat.row_size();
 
@@ -351,12 +330,12 @@ namespace linear_algebra
                 std::runtime_error(
                     "Dimensions mismatch when performing matrix multiplication."));
 
-            Matrix<UnitTp> result(col_size, r_row_w);
+            Matrix<UnitTp> result(col_h, r_row_w);
             auto it1 = this->begin();
             auto it2 = r_mat.begin();
             auto res_it = result.begin();
 
-            for (SizeTp i = 0; i < col_size; i++)
+            for (SizeTp i = 0; i < col_h; i++)
                 for (SizeTp j = 0; j < r_row_w; j++)
                     for (SizeTp k = 0; k < r_col_h; k++)
                         *(res_it + i * r_row_w + j) +=
@@ -367,29 +346,20 @@ namespace linear_algebra
         }
 
         /// UnitTp must have a defined operator*
+        /// Old implementation: Time elapsed: 242,902 μs
+        /// New implementation: Time elapsed: 217,647 μs
         Matrix operator*(const UnitTp &scalar)
         {
 
             static_assert(std::is_arithmetic_v<UnitTp>,
                           "UnitTp must be arithmetic type.");
 
+            if (scalar == 0)
+                return Matrix<UnitTp>(this->column_size(), this->row_size());
             if (scalar == 1)
                 return *this;
-
-            const SizeTp col_h = this->column_size();
-            const SizeTp row_w = this->row_size();
-            Matrix<UnitTp> result(col_h, row_w);
-
-            if (scalar == 0)
-                return result;
-
-            auto it = this->begin();
-            auto res_it = result.begin();
-
-            SizeTp i = 0;
-            while (i < col_h * row_w)
-                *(res_it + (i++)) = (*(it + i)) * (scalar);
-
+            Matrix<UnitTp> result(this->column_size(), this->row_size());
+            matrix::scalar_multiply(this->it(), scalar, result.it(), false);
             return result;
         }
 
